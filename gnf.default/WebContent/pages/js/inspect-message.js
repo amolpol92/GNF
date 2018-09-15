@@ -36,7 +36,7 @@ $(document).ready(function() {
         } else {
           console.log(data);
           var responseJson = data.responseJSON;
-          createTable(responseJson)
+          createTable(responseJson.inspectResults)
 
         }
         resetDeIdentifyButton();
@@ -59,7 +59,7 @@ $(document).ready(function() {
 	          } else {
 	            console.log(data);
 	            var responseJson = data.responseJSON;
-	            $('#message').val(responseJson);
+	            $('#message').val(responseJson.message);
 
 	          }
 	          resetDeIdentifyButton();

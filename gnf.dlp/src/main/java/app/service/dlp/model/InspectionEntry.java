@@ -4,16 +4,16 @@ package app.service.dlp.model;
  * @author AdarshSinghal
  *
  */
-public class InspectResult {
+public class InspectionEntry {
 
 	String quote;
 	String infoType;
 	String likelihood;
 	
-	public InspectResult() {
+	public InspectionEntry() {
 	}
 
-	public InspectResult(String quote, String infoType, String likelihood) {
+	public InspectionEntry(String quote, String infoType, String likelihood) {
 		super();
 		this.quote = quote;
 		this.infoType = infoType;
@@ -46,7 +46,7 @@ public class InspectResult {
 
 	@Override
 	public String toString() {
-		return "InspectResult [quote=" + quote + ", infoType=" + infoType + ", likelihood=" + likelihood + "]";
+		return "InspectionEntry [quote=" + quote + ", infoType=" + infoType + ", likelihood=" + likelihood + "]";
 	}
 
 }
