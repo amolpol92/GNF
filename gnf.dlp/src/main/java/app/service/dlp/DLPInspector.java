@@ -20,7 +20,7 @@ import com.google.privacy.dlp.v2.ProjectName;
 import com.google.protobuf.ByteString;
 
 import app.service.dlp.constants.Constants;
-import app.service.dlp.model.InspectResult;
+import app.service.dlp.model.InspectionEntry;
 
 /**
  * This class is responsible for DLP inspection. It contains DLP Inspection
@@ -42,11 +42,10 @@ public class DLPInspector {
 	 * @return List&lt;InspectResult&gt;
 	 * @throws IOException
 	 */
-	public List<InspectResult> getInspectionResult(String inputMessage) throws IOException {
+	public List<InspectionEntry> getInspectionResult(String inputMessage) throws IOException {
 		InspectContentResponse inspectContentResponse = getInspectContentResponse(inputMessage);
-
 		List<Finding> findingList = inspectContentResponse.getResult().getFindingsList();
-		List<InspectResult> inspectResList = findingList.stream().filter(finding -> isLikelyOrVeryLikely(finding))
+		List<InspectionEntry> inspectResList = findingList.stream().filter(finding -> isLikelyOrVeryLikely(finding))
 				.map(finding -> getInspectResult(finding)).collect(Collectors.toList());
 		return inspectResList;
 	}
@@ -57,11 +56,11 @@ public class DLPInspector {
 	 * @param finding
 	 * @return inspectResult
 	 */
-	private InspectResult getInspectResult(Finding finding) {
+	private InspectionEntry getInspectResult(Finding finding) {
 		String quote = finding.getQuote();
 		String infoType = finding.getInfoType().getName();
 		String likelihood = finding.getLikelihood().toString();
-		InspectResult inspectResult = new InspectResult(quote, infoType, likelihood);
+		InspectionEntry inspectResult = new InspectionEntry(quote, infoType, likelihood);
 		return inspectResult;
 	}
 

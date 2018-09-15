@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import app.service.dlp.exception.PANDataFoundSecurityViolationException;
 import app.service.dlp.logger.CloudLogger;
-import app.service.dlp.model.InspectResult;
+import app.service.dlp.model.InspectionEntry;
+import app.service.dlp.model.InspectionResultWrapper;
 
 /**
  * Responsible for DLP Inspection, Risk analysis & Deidentification <br>
@@ -20,17 +20,6 @@ import app.service.dlp.model.InspectResult;
 public class DLPService {
 
 	private CloudLogger LOGGER = CloudLogger.getLogger();
-
-	/**
-	 * @param inputMessage
-	 * @return inspectResult
-	 * @throws IOException
-	 */
-	public List<InspectResult> getInspectionResult(String inputMessage) throws IOException {
-		LOGGER.info("Inside DLP Service. Performing DLP Inspection for message - " + inputMessage);
-		DLPInspector dlpInspector = new DLPInspector();
-		return dlpInspector.getInspectionResult(inputMessage);
-	}
 
 	/**
 	 * @param inputMessage
@@ -50,23 +39,39 @@ public class DLPService {
 	 * @throws IOException
 	 * @throws PANDataFoundSecurityViolationException
 	 */
-	public void checkForSensitiveData(String inputMessage) throws IOException, PANDataFoundSecurityViolationException {
+	public InspectionResultWrapper inspect(String inputMessage) throws IOException {
 		LOGGER.info("Inside DLP Service. Checking for sensitive data.");
-		List<InspectResult> inspectionResults = getInspectionResult(inputMessage);
-		boolean sensitiveDataPresent = inspectionResults.stream().anyMatch(result -> hasSensitiveData(result));
+		InspectionResultWrapper inspectionResults = getInspectionResult(inputMessage);
 
-		if (sensitiveDataPresent) {
+		boolean hasSensitiveData = inspectionResults.getInspectResults().stream()
+				.anyMatch(result -> hasSensitiveData(result));
+
+		if (hasSensitiveData) {
 			LOGGER.warning(
 					"Inside DLP Service. Throwing PANDataFoundSecurityViolationException. Reason:- PAN data present. "
 							+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
-			throw new PANDataFoundSecurityViolationException();
+			inspectionResults.setSensitiveDataFlag(true);
+		} else {
+			LOGGER.info("Inside DLP Service. Sensitive data not present. PIIs found: \n" + inspectionResults);
 		}
 
-		LOGGER.info("Inside DLP Service. Sensitive data not present. PIIs found: \n" + inspectionResults);
+		return inspectionResults;
 
 	}
 
-	private boolean hasSensitiveData(InspectResult inspectResult) {
+	/**
+	 * @param inputMessage
+	 * @return inspectResult
+	 * @throws IOException
+	 */
+	private InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
+		LOGGER.info("Inside DLP Service. Performing DLP Inspection for message - " + inputMessage);
+		DLPInspector dlpInspector = new DLPInspector();
+		List<InspectionEntry> inspectionResult = dlpInspector.getInspectionResult(inputMessage);
+		return new InspectionResultWrapper(inspectionResult);
+	}
+
+	private boolean hasSensitiveData(InspectionEntry inspectResult) {
 		List<String> sensitiveInfoTypes = Arrays.asList("CREDIT_CARD_NUMBER", "INDIA_PAN_INDIVIDUAL");
 		return sensitiveInfoTypes.contains(inspectResult.getInfoType());
 	}

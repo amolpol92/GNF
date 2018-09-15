@@ -12,7 +12,7 @@ import app.exception.InsufficientAuthorizationException;
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
 import app.logging.CloudLogger;
-import app.model.InspectResult;
+import app.model.InspectionResultWrapper;
 import app.model.SourceMessage;
 import app.service.dlp.DLPServiceInvoker;
 import app.util.ExternalProperties;
@@ -38,12 +38,12 @@ public class NotifyService {
 	// TODO Remove dependencies from here. Use HTTPClient API to hit POST URL. Check
 	// similar implementation for reference at
 	// updateDelConfirmation() of NotifyUtility
-	private DLPServiceInvoker dlpService;
+	private DLPServiceInvoker dlpServiceInvoker;
 	private AuthorizationService authService;
 
 	public NotifyService() {
 		authService = new AuthorizationService();
-		dlpService = new DLPServiceInvoker();
+		dlpServiceInvoker = new DLPServiceInvoker();
 	}
 
 	/**
@@ -68,26 +68,26 @@ public class NotifyService {
 	 * @return list of inspection results
 	 * @throws IOException
 	 */
-	public List<InspectResult> getInspectionResult(String inputMessage) throws IOException {
-		LOGGER.info("Inside Notify Serice. Passing message to DLP Service for inspection.");
-		List<InspectResult> inspectionResult = dlpService.getInspectionResult(inputMessage);
-		LOGGER.info("Inside Notify Serice. Received inspection result from DLP Service. \nInfotypes matched: "
-				+ inspectionResult.size());
+	public InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
+		LOGGER.info("Inside Notify Serice. Passing message to DLP Service Invoker for inspection.");
+		InspectionResultWrapper inspectionResult = dlpServiceInvoker.getInspectionResult(inputMessage);
+		LOGGER.info("Inside Notify Serice. Received inspection result from DLP Service Invoker. \nInfotypes matched: "
+				+ inspectionResult.getInspectResults().size());
 		return inspectionResult;
 	}
 
 	/**
-	 * Uses DLP Service to perform DLP Deidentification on the given string
+	 * Uses DLP Service Invoker to perform DLP Deidentification on the given string
 	 * 
 	 * @param inputMsg
 	 * @return de-identified String
 	 * @throws IOException
 	 */
 	public String getDeidentifiedString(String inputMsg) throws IOException {
-		LOGGER.info("Inside Notify Service. Passing message to DLP Service for deidentification. " + "\nMessage: "
-				+ inputMsg);
-		String deidentifiedString = dlpService.getDeidentifiedString(inputMsg);
-		LOGGER.info("Inside Notify Service. Received deidentified message from DLP Service \nMessage - "
+		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for deidentification. "
+				+ "\nMessage: " + inputMsg);
+		String deidentifiedString = dlpServiceInvoker.getDeidentifiedString(inputMsg);
+		LOGGER.info("Inside Notify Service. Received deidentified message from DLP Service Invoker \nMessage - "
 				+ deidentifiedString);
 		return deidentifiedString;
 	}
@@ -111,14 +111,14 @@ public class NotifyService {
 		authService.checkSourceAuthorization(sourceMessage);
 
 		LOGGER.info("Inside Notify Service. Source authorize"
-				+ "Passing message to DLP Service for inspection. \nMessage: " + message);
+				+ "Passing message to DLP Service Invoker for inspection. \nMessage: " + message);
 		// Inspection & termination on violation
-		dlpService.checkForSensitiveData(message);
+		dlpServiceInvoker.checkForSensitiveData(message);
 
-		LOGGER.info(
-				"Inside Notify Service. Passing message to DLP Service for deidentification. \nMessage: " + message);
+		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for deidentification. \nMessage: "
+				+ message);
 		// DeIdentification - Redact/Mask PIIs.
-		String deidentifiedStr = dlpService.getDeidentifiedString(message);
+		String deidentifiedStr = dlpServiceInvoker.getDeidentifiedString(message);
 
 		LOGGER.info("Inside Notify Service. Adding source message attributes into com.google.pubsub.v1.PubsubMessage."
 				+ "\nThree attributes added - [GlobalTxnId, SourceAuthLevel, GroupId]\n" + sourceMessage);
