@@ -61,7 +61,7 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-translate</artifactId>
-      </dependency>
+    </dependency>
 
   </dependencies>
 
@@ -91,9 +91,8 @@
         <configuration>
           <services>
             <!-- Default service -->
-<!--             <service>
-              ${project.build.directory}/${project.name}-${project.version}
-            </service> -->
+            <!-- <service> ${project.build.directory}/${project.name}-${project.version} 
+              </service> -->
             <!-- One for each additional service -->
             <service>
               ${project.parent.basedir}/default/target/gnf.default-${project.version}
@@ -109,5 +108,6 @@
   <modules>
     <module>gnf.default</module>
     <module>gnf.dlp</module>
+    <module>gnf.logging</module>
   </modules>
 </project>
