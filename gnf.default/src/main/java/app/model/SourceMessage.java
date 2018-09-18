@@ -6,24 +6,24 @@ package app.model;
  */
 public class SourceMessage {
 
-	private int sourceauthLevel;
+	private int sourceAuthLevel;
 	private int groupId;
 	private String message;
 	private String globalTxnId;
 
 	public SourceMessage(int sourceauthLevel, int groupId, String message) {
 		super();
-		this.sourceauthLevel = sourceauthLevel;
+		this.sourceAuthLevel = sourceauthLevel;
 		this.groupId = groupId;
 		this.message = message;
 	}
 
-	public int getSourceauthLevel() {
-		return sourceauthLevel;
+	public int getSourceAuthLevel() {
+		return sourceAuthLevel;
 	}
 
-	public void setSourceauthLevel(int sourceauthLevel) {
-		this.sourceauthLevel = sourceauthLevel;
+	public void setSourceAuthLevel(int sourceAuthLevel) {
+		this.sourceAuthLevel = sourceAuthLevel;
 	}
 
 	public int getGroupId() {
@@ -52,7 +52,7 @@ public class SourceMessage {
 
 	@Override
 	public String toString() {
-		return "SourceMessage [sourceauthLevel=" + sourceauthLevel + ", groupId=" + groupId + ", message=" + message
+		return "SourceMessage [sourceAuthLevel=" + sourceAuthLevel + ", groupId=" + groupId + ", message=" + message
 				+ ", globalTxnId=" + globalTxnId + "]";
 	}
 

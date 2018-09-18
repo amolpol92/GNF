@@ -27,10 +27,8 @@ public class DLPService {
 	 * @throws IOException
 	 */
 	public String getDeidentifiedString(String inputMessage) throws IOException {
-		LOGGER.info("Inside DLP Service. Performing DLP Deidentification for message.");
 		DLPDeIdentifier dlpDeidentifier = new DLPDeIdentifier();
 		String deidentifiedString = dlpDeidentifier.getDeidentifiedString(inputMessage);
-		LOGGER.info("Inside DLP Service. Deidentified message: \n" + deidentifiedString);
 		return deidentifiedString;
 	}
 
@@ -40,7 +38,6 @@ public class DLPService {
 	 * @throws PANDataFoundSecurityViolationException
 	 */
 	public InspectionResultWrapper inspect(String inputMessage) throws IOException {
-		LOGGER.info("Inside DLP Service. Checking for sensitive data.");
 		InspectionResultWrapper inspectionResults = getInspectionResult(inputMessage);
 
 		boolean hasSensitiveData = inspectionResults.getInspectResults().stream()
@@ -52,7 +49,9 @@ public class DLPService {
 							+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
 			inspectionResults.setSensitiveDataFlag(true);
 		} else {
-			LOGGER.info("Inside DLP Service. Sensitive data not present. PIIs found: \n" + inspectionResults);
+			LOGGER.info(
+					"Inside DLP Service. Performed DLP Inspection on input message. Sensitive data not present. PIIs found? \n"
+							+ !inspectionResults.getInspectResults().isEmpty());
 		}
 
 		return inspectionResults;
@@ -65,7 +64,6 @@ public class DLPService {
 	 * @throws IOException
 	 */
 	private InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
-		LOGGER.info("Inside DLP Service. Performing DLP Inspection for message - " + inputMessage);
 		DLPInspector dlpInspector = new DLPInspector();
 		List<InspectionEntry> inspectionResult = dlpInspector.getInspectionResult(inputMessage);
 		return new InspectionResultWrapper(inspectionResult);

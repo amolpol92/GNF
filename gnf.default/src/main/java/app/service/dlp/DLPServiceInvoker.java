@@ -82,8 +82,6 @@ public class DLPServiceInvoker {
 
 		MessageWrapper messageWrapper = gson.fromJson(responseJson, MessageWrapper.class);
 
-		LOGGER.info("Performed POST on " + ConstantsURL.DLP_DEIDENTIFY_URL + " \n Message: \n"
-				+ messageWrapper.getMessage());
 		return messageWrapper.getMessage();
 	}
 
@@ -93,17 +91,13 @@ public class DLPServiceInvoker {
 	 * @throws PANDataFoundSecurityViolationException
 	 */
 	public void checkForSensitiveData(String inputMessage) throws IOException, PANDataFoundSecurityViolationException {
-		LOGGER.info("Inside checkForSensitiveData(...) of DLPServiceInvoker. " + "\nChecking for sensitive data.");
 		InspectionResultWrapper inspectionResults = getInspectionResult(inputMessage);
 
 		if (inspectionResults.getSensitiveDataFlag()) {
-			LOGGER.warning(
-					"Inside DLP Service. Throwing PANDataFoundSecurityViolationException. Reason:- PAN data present. "
-							+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
+			LOGGER.warning("Inside DLP Service. Terminating the transaction. Reason:- PAN data present. "
+					+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
 			throw new PANDataFoundSecurityViolationException();
 		}
-
-		LOGGER.info("Inside DLP Service. Sensitive data not present. PIIs found: \n" + inspectionResults);
 
 	}
 

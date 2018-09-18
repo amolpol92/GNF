@@ -69,9 +69,9 @@ public class NotifyService {
 	 * @throws IOException
 	 */
 	public InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
-		LOGGER.info("Inside Notify Serice. Passing message to DLP Service Invoker for inspection.");
+		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for inspection.");
 		InspectionResultWrapper inspectionResult = dlpServiceInvoker.getInspectionResult(inputMessage);
-		LOGGER.info("Inside Notify Serice. Received inspection result from DLP Service Invoker. \nInfotypes matched: "
+		LOGGER.info("Inside Notify Service. Received inspection result from DLP Service Invoker. \nInfotypes matched: "
 				+ inspectionResult.getInspectResults().size());
 		return inspectionResult;
 	}
@@ -106,28 +106,27 @@ public class NotifyService {
 			throws SQLException, ExternalUserNotAllowedException, NoSuchGroupException,
 			InsufficientAuthorizationException, IOException, PANDataFoundSecurityViolationException {
 		String message = sourceMessage.getMessage();
-		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service. \n" + sourceMessage);
+		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.");
 		// Application level Source authorization against Target Group
 		authService.checkSourceAuthorization(sourceMessage);
 
-		LOGGER.info("Inside Notify Service. Source authorize"
-				+ "Passing message to DLP Service Invoker for inspection. \nMessage: " + message);
+		LOGGER.info("Inside Notify Service. Source has access to post on group " + sourceMessage.getGroupId() + ". "
+				+ "\nUsing HttpClient to pass message to DLP Service for inspection.");
 		// Inspection & termination on violation
 		dlpServiceInvoker.checkForSensitiveData(message);
 
-		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for deidentification. \nMessage: "
-				+ message);
 		// DeIdentification - Redact/Mask PIIs.
 		String deidentifiedStr = dlpServiceInvoker.getDeidentifiedString(message);
 
-		LOGGER.info("Inside Notify Service. Adding source message attributes into com.google.pubsub.v1.PubsubMessage."
-				+ "\nThree attributes added - [GlobalTxnId, SourceAuthLevel, GroupId]\n" + sourceMessage);
+		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found. The deidentified message is \n"
+				+ deidentifiedStr);
+
 		PubsubMessage pubsubMessage = SourceToPubSubMessageConverter.convert(sourceMessage, deidentifiedStr);
 
 		String topicNames = ExternalProperties.getAppConfig("app.gc.pubsub.topic.layer1");
 
 		LOGGER.info("Inside Notify Service. Need to publish message on " + topicNames
-				+ "Delegating responsibility to NotifyServiceMessagePublisher.");
+				+ ". Delegating responsibility to NotifyServiceMessagePublisher.");
 
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
 		List<String> messageIds = publisher.publishMessage(topicNames, pubsubMessage);
@@ -150,7 +149,7 @@ public class NotifyService {
 
 		private static PubsubMessage convert(SourceMessage sourceMessage, String deidentifiedStr) throws IOException {
 			ByteString data = ByteString.copyFromUtf8(deidentifiedStr);
-			String srcAuthLvlStr = String.valueOf(sourceMessage.getSourceauthLevel());
+			String srcAuthLvlStr = String.valueOf(sourceMessage.getSourceAuthLevel());
 			String groupIdStr = String.valueOf(sourceMessage.getGroupId());
 
 			PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data)

@@ -51,7 +51,6 @@ public class SendGridWebhook extends HttpServlet {
 				dao = new EmailNotifeirStatusLogDAO();
 				dao.insertWebhookDetails(message);
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			

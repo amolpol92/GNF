@@ -19,7 +19,6 @@ import app.logging.CloudLogger;
 import app.model.SourceMessage;
 import app.service.NotifyService;
 
-
 /**
  * @author adarshsinghal
  *
@@ -27,7 +26,7 @@ import app.service.NotifyService;
 @WebServlet(name = "NotifyServlet", urlPatterns = { "/notify" })
 public class NotifyServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	
+
 	private static final CloudLogger LOGGER = CloudLogger.getLogger();
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -37,38 +36,37 @@ public class NotifyServlet extends HttpServlet {
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
-		
 
-		SourceMessage srcMessage = getSourceMessage(request);
+		SourceMessage sourceMessage = getSourceMessage(request);
 		List<String> messageIds = null;
 		NotifyService notifyService = new NotifyService();
 		String gbTxnId = "g" + new Date().getTime() + "r" + (int) (Math.random() * 100);
-		srcMessage.setGlobalTxnId(gbTxnId);
-		LOGGER.info("Inside NotifyServlet. Added Global Txn Id to Source Message. \nGlobal Txn Id is \n"+srcMessage.getGlobalTxnId());
-		
+		sourceMessage.setGlobalTxnId(gbTxnId);
+		LOGGER.info("Inside NotifyServlet. Added Global Txn Id to Source Message. \nGlobal Txn Id is \n"
+				+ sourceMessage.getGlobalTxnId() + ", Source Auth Level is " + sourceMessage.getSourceAuthLevel()
+				+ ", Target group id is " + sourceMessage.getGroupId());
+
 		boolean isExceptionOccurred = false;
 		try {
-			messageIds = notifyService.notify(srcMessage);
+			messageIds = notifyService.notify(sourceMessage);
 		} catch (SQLException | ExternalUserNotAllowedException | NoSuchGroupException
 				| InsufficientAuthorizationException | PANDataFoundSecurityViolationException e) {
 			request.setAttribute("exceptionMsg", e.getMessage());
-			isExceptionOccurred=true;
+			isExceptionOccurred = true;
 			request.setAttribute("isExceptionOccured", isExceptionOccurred);
 			request.getRequestDispatcher("/pages/MessageSource.jsp").forward(request, response);
 		}
-		
-		
+
 		request.setAttribute("gbTxnId", gbTxnId);
 		request.setAttribute("messageIds", messageIds);
 
-		if (messageIds !=null && messageIds.size() != 0) {
+		if (messageIds != null && messageIds.size() != 0) {
 			request.getRequestDispatcher("/results/success.jsp").forward(request, response);
 		} else {
-			if(!isExceptionOccurred)
+			if (!isExceptionOccurred)
 				request.getRequestDispatcher("/results/failure.jsp").forward(request, response);
 		}
-		
+
 	}
 
 	private SourceMessage getSourceMessage(HttpServletRequest request) {

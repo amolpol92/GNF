@@ -28,7 +28,6 @@ public class LoggingServlet extends HttpServlet {
 	 */
 	public LoggingServlet() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
