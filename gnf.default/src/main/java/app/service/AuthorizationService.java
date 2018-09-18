@@ -25,20 +25,21 @@ public class AuthorizationService {
 	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	/**
-	 * @param srcMessage
+	 * @param sourceMessage
 	 * @return boolean
 	 * @throws SQLException
 	 * @throws ExternalUserNotAllowedException
 	 * @throws NoSuchGroupException
 	 * @throws InsufficientAuthorizationException
 	 */
-	public void checkSourceAuthorization(SourceMessage srcMessage) throws SQLException, ExternalUserNotAllowedException,
-			NoSuchGroupException, InsufficientAuthorizationException {
+	public void checkSourceAuthorization(SourceMessage sourceMessage) throws SQLException,
+			ExternalUserNotAllowedException, NoSuchGroupException, InsufficientAuthorizationException {
 		LOGGER.info("Inside Authorization Service. Checking for External user.");
-		checkForExternalUser(srcMessage);
+		checkForExternalUser(sourceMessage);
 		LOGGER.info("Inside Authorization Service. Internal User verified. \n"
-				+ "Checking if source has sufficient authorization to post on group. Source Message \n" + srcMessage);
-		checkSourceToGroupAuthorization(srcMessage);
+				+ "Checking if source has sufficient authorization to post on group. Group Id: "
+				+ sourceMessage.getGroupId());
+		checkSourceToGroupAuthorization(sourceMessage);
 		LOGGER.info("Inside Authorization Service. Source has sufficient authorization.");
 	}
 
@@ -50,7 +51,7 @@ public class AuthorizationService {
 	 * @throws ExternalUserNotAllowedException
 	 */
 	private void checkForExternalUser(SourceMessage srcMessage) throws ExternalUserNotAllowedException {
-		if (srcMessage.getSourceauthLevel() == 0) {
+		if (srcMessage.getSourceAuthLevel() == 0) {
 			LOGGER.warning("Inside Authorization Service. Throwing ExternalUserNotAllowedException. "
 					+ "\nTransaction terminated. " + "Reason:- External User tried to send message.");
 			throw new ExternalUserNotAllowedException();
@@ -61,23 +62,24 @@ public class AuthorizationService {
 	 * Source Authorization Level must be equal or greater than required
 	 * authorization level for targeting a group for messaging.
 	 * 
-	 * @param srcMessage
+	 * @param sourceMessage
 	 * @throws SQLException
 	 * @throws NoSuchGroupException
 	 * @throws InsufficientAuthorizationException
 	 */
-	private void checkSourceToGroupAuthorization(SourceMessage srcMessage)
+	private void checkSourceToGroupAuthorization(SourceMessage sourceMessage)
 			throws SQLException, NoSuchGroupException, InsufficientAuthorizationException {
 
-		LOGGER.info("Inside Authorization Service. Using User Service to retrieve Group Auth Level of Group id: "
-				+ srcMessage.getGroupId());
-
 		UserService userService = new UserService();
-		int grpAuthLvl = userService.getGroupAuthLevel(srcMessage.getGroupId());
+		int groupAuthLevel = userService.getGroupAuthLevel(sourceMessage.getGroupId());
 
-		if (srcMessage.getSourceauthLevel() < grpAuthLvl) {
-			LOGGER.warning("Inside Authorization Service. Throwing InsufficientAuthorizationException. "
-					+ "Transaction terminated. Reason:- Insufficient authorization.");
+		LOGGER.info(
+				"Inside Authorization Service. Retrieved Target Group's required authorization level from User Service. Group id: "
+						+ sourceMessage.getGroupId() + ", Minimum Required auth level=" + groupAuthLevel);
+
+		if (sourceMessage.getSourceAuthLevel() < groupAuthLevel) {
+			LOGGER.warning(
+					"Inside Authorization Service." + " Transaction terminated. Reason:- Insufficient authorization.");
 			throw new InsufficientAuthorizationException();
 		}
 	}

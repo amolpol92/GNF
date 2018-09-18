@@ -27,6 +27,7 @@ public class GenericMessagePublisher {
 	 * @return messageId - String
 	 * @throws Exception
 	 */
+	@SuppressWarnings("deprecation")
 	public String publishMessage(String topicName, PubsubMessage pubsubMessage) throws Exception {
 
 		ProjectTopicName projectTopicName = ProjectTopicName.of(Constants.PROJECT_ID, topicName);

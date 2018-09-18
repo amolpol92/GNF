@@ -33,4 +33,10 @@ public class InspectionResultWrapper {
 		this.sensitiveDataFlag = sensitiveDataFlag;
 	}
 
+	@Override
+	public String toString() {
+		return "InspectionResultWrapper [inspectResults=" + inspectResults + ", sensitiveDataFlag=" + sensitiveDataFlag
+				+ "]";
+	}
+
 }
