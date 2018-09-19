@@ -2,7 +2,6 @@ package app.service.logging;
 
 import java.util.Collections;
 
-import com.google.api.client.util.Strings;
 import com.google.cloud.MonitoredResource;
 import com.google.cloud.logging.LogEntry;
 import com.google.cloud.logging.Logging;
@@ -10,6 +9,7 @@ import com.google.cloud.logging.LoggingOptions;
 import com.google.cloud.logging.Payload.StringPayload;
 import com.google.cloud.logging.Severity;
 
+import app.service.logging.factory.LogEntryFactory;
 import app.service.logging.model.LogRequest;
 
 /**
@@ -30,43 +30,19 @@ public class CloudLogger {
 	}
 
 	/**
-	 * @param message
-	 */
-	public void info(String message) {
-		log(message, Severity.INFO);
-	}
-
-	/**
-	 * @param message
-	 */
-	public void warning(String message) {
-		log(message, Severity.WARNING);
-	}
-
-	/**
-	 * @param message
-	 */
-	public void error(String message) {
-		log(message, Severity.ERROR);
-	}
-
-	/**
-	 * @param message
-	 * @param severity
-	 */
-	public void log(String message, Severity severity) {
-		String monitoredResourceType = MonitoredResourceType.GLOBAL.toString();
-		String logName = "GNFAppLogger";
-
-		log(message, severity, monitoredResourceType, logName);
-	}
-
-	/**
 	 * @param logRequest
+	 * @throws Exception
 	 */
-	public void log(LogRequest logRequest) {
-		Severity severity = Severity.valueOf(logRequest.getSeverity());
-		log(logRequest.getMessage(), severity, logRequest.getMonitoredResource(), logRequest.getLogName());
+	public void log(LogRequest logRequest) throws Exception {
+		try (Logging logging = LoggingOptions.getDefaultInstance().getService();) {
+
+			LogEntry entry = LogEntryFactory.getInstance(logRequest);
+
+			logging.write(Collections.singleton(entry));
+			logging.flush();
+		} catch (Exception e) {
+			throw e;
+		}
 	}
 
 	/**
@@ -77,18 +53,6 @@ public class CloudLogger {
 	 */
 	public void log(String message, Severity severity, String monitoredResourceType, String logName) {
 
-		if (severity == null) {
-			severity = Severity.INFO;
-		}
-
-		if (Strings.isNullOrEmpty(monitoredResourceType)) {
-			monitoredResourceType = MonitoredResourceType.GLOBAL.toString();
-		}
-
-		if (Strings.isNullOrEmpty(logName)) {
-			logName = "GNFAppLogger";
-		}
-
 		try (Logging logging = LoggingOptions.getDefaultInstance().getService();) {
 			MonitoredResource monitoredResource = MonitoredResource.newBuilder(monitoredResourceType).build();
 			LogEntry entry = LogEntry.newBuilder(StringPayload.of(message)).setSeverity(severity).setLogName(logName)
@@ -98,6 +62,22 @@ public class CloudLogger {
 			logging.flush();
 		} catch (Exception e) {
 			// Do nothing
+		}
+
+	}
+
+	public static void main(String[] args) {
+
+		try (Logging logging = LoggingOptions.getDefaultInstance().getService();) {
+			MonitoredResource monitoredResource = MonitoredResource.newBuilder(MonitoredResourceType.GLOBAL.toString())
+					.build();
+			LogEntry entry = LogEntry.newBuilder(StringPayload.of("Sample text")).setSeverity(Severity.INFO)
+					.setLogName("GNFAppLogger").setResource(monitoredResource).setSourceLocation(null).build();
+
+			logging.write(Collections.singleton(entry));
+			logging.flush();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 	}

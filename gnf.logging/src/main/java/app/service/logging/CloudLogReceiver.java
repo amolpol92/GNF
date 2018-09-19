@@ -14,7 +14,7 @@ import com.google.cloud.logging.LoggingOptions;
  */
 public class CloudLogReceiver {
 
-	public void listWrittenLogs() {
+	public static void listWrittenLogs() {
 		// [START listlogs]
 		// Instantiates a client
 		LoggingOptions options = LoggingOptions.getDefaultInstance();
@@ -36,6 +36,10 @@ public class CloudLogReceiver {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main(String[] args) {
+		listWrittenLogs();
 	}
 
 }
