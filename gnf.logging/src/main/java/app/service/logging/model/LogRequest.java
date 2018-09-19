@@ -1,16 +1,20 @@
 package app.service.logging.model;
 
+import java.util.Map;
+
 public class LogRequest {
 
 	private String message;
 	private String severity;
-	private String monitoredResource;
+	private MonitoredResourceModel monitoredResource;
 	private String logName;
+	private Map<String, String> labels;
+	private SourceLocationModel sourceLocation;
 
 	public LogRequest() {
 	}
 
-	public LogRequest(String messsage, String severity, String monitoredResource, String logName) {
+	public LogRequest(String messsage, String severity, MonitoredResourceModel monitoredResource, String logName) {
 		super();
 		this.message = messsage;
 		this.severity = severity;
@@ -34,11 +38,11 @@ public class LogRequest {
 		this.severity = severity;
 	}
 
-	public String getMonitoredResource() {
+	public MonitoredResourceModel getMonitoredResource() {
 		return monitoredResource;
 	}
 
-	public void setMonitoredResource(String monitoredResource) {
+	public void setMonitoredResource(MonitoredResourceModel monitoredResource) {
 		this.monitoredResource = monitoredResource;
 	}
 
@@ -50,10 +54,27 @@ public class LogRequest {
 		this.logName = logName;
 	}
 
+	public Map<String, String> getLabels() {
+		return labels;
+	}
+
+	public void setLabels(Map<String, String> labels) {
+		this.labels = labels;
+	}
+
+	public SourceLocationModel getSourceLocation() {
+		return sourceLocation;
+	}
+
+	public void setSourceLocation(SourceLocationModel sourceLocation) {
+		this.sourceLocation = sourceLocation;
+	}
+
 	@Override
 	public String toString() {
-		return "LogRequest [messsage=" + message + ", severity=" + severity + ", monitoredResource="
-				+ monitoredResource + ", logName=" + logName + "]";
+		return "LogRequest [message=" + message + ", severity=" + severity 
+				+ ", monitoredResource=" + monitoredResource
+				+ ", logName=" + logName + ", labels=" + labels + ", sourceLocation=" + sourceLocation + "]";
 	}
 
 }

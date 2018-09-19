@@ -52,12 +52,30 @@ td, th {
         </tr>
         <tr>
           <th>Request Body</th>
-          <td><pre>{
-  &quot;message&quot;: &quot;The request body should be in this format.&quot;,
-  &quot;severity&quot;: &quot;INFO&quot;,
-  &quot;monitoredResource&quot;: &quot;global&quot;,
-  &quot;logName&quot;: &quot;MyLogger&quot;
-}</pre></td>
+          <td><pre>
+{
+    &quot;message&quot;: &quot;GET is not supported. Use POST method. The request body should be in this format.&quot;,
+    &quot;severity&quot;: &quot;INFO&quot;,
+    &quot;monitoredResource&quot;: {
+        &quot;type&quot;: &quot;global&quot;,
+        &quot;labels&quot;: {
+            &quot;module_id&quot;: &quot;default-service&quot;,
+            &quot;project_id&quot;: &quot;project-212003&quot;,
+            &quot;version_id&quot;: &quot;1.0.0&quot;
+        }
+    },
+    &quot;logName&quot;: &quot;MyLogger&quot;,
+    &quot;labelsMap&quot;: {
+        &quot;Global Txn Id&quot;: &quot;gbtxnSampleId12345&quot;
+    },
+    &quot;sourceLocation&quot;: {
+        &quot;fileName&quot;: &quot;LoggingServlet.java&quot;,
+        &quot;lineNumber&quot;: 20,
+        &quot;function&quot;: &quot;app.service.logging.servlet.LoggingServlet.doGet(...)&quot;
+    }
+}
+
+			</pre></td>
         </tr>
 
       </table>
