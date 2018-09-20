@@ -93,6 +93,7 @@ public class LoggingServlet extends HttpServlet {
 		};
 
 		logRequest.setLabels(labelFromKey);
+		logRequest.setSourceLocation(new SourceLocationModel("LoggingServlet.java", 20l,"app.service.logging.servlet.LoggingServlet.doGet(...)"));
 
 		String json = gson.toJson(logRequest);
 		pw.println(json);

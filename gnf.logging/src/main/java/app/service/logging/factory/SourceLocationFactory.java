@@ -22,7 +22,7 @@ public class SourceLocationFactory {
 		builder.setFile(srcLoc.getFileName());			
 
 		long lineNumber = srcLoc.getLineNumber();
-		if (lineNumber < 1)
+		if (lineNumber > 0)
 			builder.setLine(lineNumber);
 
 		String function = srcLoc.getFunction();
