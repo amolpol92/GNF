@@ -7,7 +7,6 @@ import org.apache.http.client.ClientProtocolException;
 
 import app.service.authorization.exception.ExternalUserNotAllowedException;
 import app.service.authorization.exception.InsufficientAuthorizationException;
-import app.service.authorization.exception.MessageNotLoggedException;
 import app.service.authorization.exception.NoSuchGroupException;
 import app.service.authorization.model.AuthorizationRequest;
 
@@ -40,7 +39,7 @@ public class AuthorizationService {
 	 */
 	public void checkSourceAuthorization(AuthorizationRequest sourceMessage)
 			throws SQLException, ExternalUserNotAllowedException, NoSuchGroupException,
-			InsufficientAuthorizationException, ClientProtocolException, IOException, MessageNotLoggedException {
+			InsufficientAuthorizationException, ClientProtocolException, IOException {
 		checkForExternalUser(sourceMessage);
 		checkSourceToGroupAuthorization(sourceMessage);
 		LOGGER.info("Inside Authorization Service. Source has sufficient authorization.");
@@ -57,10 +56,10 @@ public class AuthorizationService {
 	 * @throws ClientProtocolException
 	 */
 	private void checkForExternalUser(AuthorizationRequest srcMessage)
-			throws ExternalUserNotAllowedException, ClientProtocolException, IOException, MessageNotLoggedException {
+			throws ExternalUserNotAllowedException, ClientProtocolException, IOException {
 		if (srcMessage.getSourceAuthLevel() == 0) {
-			LOGGER.warning("Inside Authorization Service. Throwing ExternalUserNotAllowedException. "
-					+ "\nTransaction terminated. " + "Reason:- External User tried to send message.");
+			LOGGER.warning("Inside Authorization Service. "
+					+ "\nTerminating transaction. " + "Reason:- External User tried to send message.");
 			throw new ExternalUserNotAllowedException();
 		}
 	}
@@ -78,14 +77,10 @@ public class AuthorizationService {
 	 * @throws MessageNotLoggedException
 	 */
 	private void checkSourceToGroupAuthorization(AuthorizationRequest sourceMessage) throws SQLException, NoSuchGroupException,
-			InsufficientAuthorizationException, ClientProtocolException, IOException, MessageNotLoggedException {
+			InsufficientAuthorizationException, ClientProtocolException, IOException {
 
 		UserServiceClient userService = new UserServiceClient();
 		int groupAuthLevel = userService.getGroupAuthLevel(String.valueOf(sourceMessage.getGroupId()));
-
-		LOGGER.info(
-				"Inside Authorization Service. Retrieved Target Group's required authorization level from User Service. Group id: "
-						+ sourceMessage.getGroupId() + ", Minimum Required auth level=" + groupAuthLevel);
 
 		if (sourceMessage.getSourceAuthLevel() < groupAuthLevel) {
 			LOGGER.warning(

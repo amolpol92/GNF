@@ -1,6 +1,7 @@
 package app.service.authorization;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.service.authorization.constants.ConstantsURL;
+import app.service.authorization.exception.NoSuchGroupException;
 import app.service.authorization.model.GroupAuthResponse;
 import app.service.authorization.model.GroupDetailsRequest;
 
@@ -24,7 +26,7 @@ import app.service.authorization.model.GroupDetailsRequest;
  */
 public class UserServiceClient {
 
-	public int getGroupAuthLevel(String groupId) throws ClientProtocolException, IOException {
+	public int getGroupAuthLevel(String groupId) throws ClientProtocolException, IOException, SQLException, NumberFormatException, NoSuchGroupException {
 		//TODO Uncomment & change following according to the user sevice when it is separated
 		
 /*		HttpClient httpclient = HttpClientBuilder.create().build();
@@ -47,8 +49,9 @@ public class UserServiceClient {
 
 		int authLevel = grpAuthResponse.getAuthLevel();*/
 		
+		UserGroupDetailsDAO dao = new UserGroupDetailsDAO();
 		
-		return Integer.parseInt(groupId);
+		return dao.getAuthLevel(Integer.parseInt(groupId));
 	}
 
 }

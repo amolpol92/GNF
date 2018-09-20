@@ -45,8 +45,7 @@ public class DLPService {
 
 		if (hasSensitiveData) {
 			LOGGER.warning(
-					"Inside DLP Service. Throwing PANDataFoundSecurityViolationException. Reason:- PAN data present. "
-							+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
+					"Inside DLP Service. PAN data present. ");
 			inspectionResults.setSensitiveDataFlag(true);
 		} else {
 			LOGGER.info(

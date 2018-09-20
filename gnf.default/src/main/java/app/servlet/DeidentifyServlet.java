@@ -17,7 +17,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.model.MessageWrapper;
-import app.service.dlp.DLPServiceInvoker;
+import app.service.client.DLPServiceClient;
 
 /**
  * Servlet implementation class DeidentifyServlet
@@ -56,7 +56,7 @@ public class DeidentifyServlet extends HttpServlet {
 			return;
 		}
 
-		DLPServiceInvoker serviceInvoker = new DLPServiceInvoker();
+		DLPServiceClient serviceInvoker = new DLPServiceClient();
 		String deidentifiedRes = serviceInvoker.getDeidentifiedString(messageWrapper.getMessage());
 		String json = gson.toJson(new MessageWrapper(deidentifiedRes));
 

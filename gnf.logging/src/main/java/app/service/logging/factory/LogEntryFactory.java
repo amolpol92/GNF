@@ -40,7 +40,7 @@ public class LogEntryFactory {
 	}
 
 	private static void setMonitoredResource(LogRequest logRequest, LogEntry.Builder builder) {
-		MonitoredResource monitoredResource = MonitoredResourceFactory.getInstance(logRequest);
+		MonitoredResource monitoredResource = MonitoredResource.newBuilder(logRequest.getMonitoredResource()).build();
 		builder.setResource(monitoredResource);
 	}
 
