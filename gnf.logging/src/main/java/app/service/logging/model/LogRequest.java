@@ -6,7 +6,7 @@ public class LogRequest {
 
 	private String message;
 	private String severity;
-	private MonitoredResourceModel monitoredResource;
+	private String monitoredResource;
 	private String logName;
 	private Map<String, String> labels;
 	private SourceLocationModel sourceLocation;
@@ -14,7 +14,7 @@ public class LogRequest {
 	public LogRequest() {
 	}
 
-	public LogRequest(String messsage, String severity, MonitoredResourceModel monitoredResource, String logName) {
+	public LogRequest(String messsage, String severity, String monitoredResource, String logName) {
 		super();
 		this.message = messsage;
 		this.severity = severity;
@@ -38,11 +38,11 @@ public class LogRequest {
 		this.severity = severity;
 	}
 
-	public MonitoredResourceModel getMonitoredResource() {
+	public String getMonitoredResource() {
 		return monitoredResource;
 	}
 
-	public void setMonitoredResource(MonitoredResourceModel monitoredResource) {
+	public void setMonitoredResource(String monitoredResource) {
 		this.monitoredResource = monitoredResource;
 	}
 
@@ -72,8 +72,7 @@ public class LogRequest {
 
 	@Override
 	public String toString() {
-		return "LogRequest [message=" + message + ", severity=" + severity 
-				+ ", monitoredResource=" + monitoredResource
+		return "LogRequest [message=" + message + ", severity=" + severity + ", monitoredResource=" + monitoredResource
 				+ ", logName=" + logName + ", labels=" + labels + ", sourceLocation=" + sourceLocation + "]";
 	}
 

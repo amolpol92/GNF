@@ -53,7 +53,7 @@ public class CloudLogger {
 	 */
 	public void log(String message, Severity severity) {
 		String monitoredResourceType = MonitoredResourceType.GAE_APP.toString();
-		String logName = "GNFAppLogger";
+		String logName = "DLPService";
 
 		log(message, severity, monitoredResourceType, logName);
 	}

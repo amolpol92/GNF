@@ -11,10 +11,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import app.exception.ExternalUserNotAllowedException;
-import app.exception.InsufficientAuthorizationException;
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
+import app.exception.UserNotAuthorizedException;
 import app.logging.CloudLogger;
 import app.model.SourceMessage;
 import app.service.NotifyService;
@@ -49,8 +48,8 @@ public class NotifyServlet extends HttpServlet {
 		boolean isExceptionOccurred = false;
 		try {
 			messageIds = notifyService.notify(sourceMessage);
-		} catch (SQLException | ExternalUserNotAllowedException | NoSuchGroupException
-				| InsufficientAuthorizationException | PANDataFoundSecurityViolationException e) {
+		} catch (SQLException | NoSuchGroupException | PANDataFoundSecurityViolationException
+				| UserNotAuthorizedException e) {
 			request.setAttribute("exceptionMsg", e.getMessage());
 			isExceptionOccurred = true;
 			request.setAttribute("isExceptionOccured", isExceptionOccurred);

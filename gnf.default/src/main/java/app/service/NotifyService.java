@@ -7,14 +7,16 @@ import java.util.List;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
-import app.exception.ExternalUserNotAllowedException;
-import app.exception.InsufficientAuthorizationException;
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
+import app.exception.UserNotAuthorizedException;
 import app.logging.CloudLogger;
+import app.model.AuthorizationRequest;
+import app.model.AuthorizationResponse;
 import app.model.InspectionResultWrapper;
 import app.model.SourceMessage;
-import app.service.dlp.DLPServiceInvoker;
+import app.service.client.AuthServiceClient;
+import app.service.client.DLPServiceClient;
 import app.util.ExternalProperties;
 
 /**
@@ -38,12 +40,10 @@ public class NotifyService {
 	// TODO Remove dependencies from here. Use HTTPClient API to hit POST URL. Check
 	// similar implementation for reference at
 	// updateDelConfirmation() of NotifyUtility
-	private DLPServiceInvoker dlpServiceInvoker;
-	private AuthorizationService authService;
+	private DLPServiceClient dlpServiceClient;
 
 	public NotifyService() {
-		authService = new AuthorizationService();
-		dlpServiceInvoker = new DLPServiceInvoker();
+		dlpServiceClient = new DLPServiceClient();
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class NotifyService {
 	 */
 	public InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
 		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for inspection.");
-		InspectionResultWrapper inspectionResult = dlpServiceInvoker.getInspectionResult(inputMessage);
+		InspectionResultWrapper inspectionResult = dlpServiceClient.getInspectionResult(inputMessage);
 		LOGGER.info("Inside Notify Service. Received inspection result from DLP Service Invoker. \nInfotypes matched: "
 				+ inspectionResult.getInspectResults().size());
 		return inspectionResult;
@@ -86,7 +86,7 @@ public class NotifyService {
 	public String getDeidentifiedString(String inputMsg) throws IOException {
 		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for deidentification. "
 				+ "\nMessage: " + inputMsg);
-		String deidentifiedString = dlpServiceInvoker.getDeidentifiedString(inputMsg);
+		String deidentifiedString = dlpServiceClient.getDeidentifiedString(inputMsg);
 		LOGGER.info("Inside Notify Service. Received deidentified message from DLP Service Invoker \nMessage - "
 				+ deidentifiedString);
 		return deidentifiedString;
@@ -94,29 +94,31 @@ public class NotifyService {
 
 	/**
 	 * @param sourceMessage
-	 * @return messageIds
+	 * @return
 	 * @throws SQLException
-	 * @throws ExternalUserNotAllowedException
 	 * @throws NoSuchGroupException
-	 * @throws InsufficientAuthorizationException
 	 * @throws IOException
 	 * @throws PANDataFoundSecurityViolationException
+	 * @throws UserNotAuthorizedException
 	 */
-	public List<String> notify(SourceMessage sourceMessage)
-			throws SQLException, ExternalUserNotAllowedException, NoSuchGroupException,
-			InsufficientAuthorizationException, IOException, PANDataFoundSecurityViolationException {
+	public List<String> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException, IOException,
+			PANDataFoundSecurityViolationException, UserNotAuthorizedException {
 		String message = sourceMessage.getMessage();
 		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.");
 		// Application level Source authorization against Target Group
-		authService.checkSourceAuthorization(sourceMessage);
+		AuthServiceClient client = new AuthServiceClient();
+		String groupId = String.valueOf(sourceMessage.getGroupId());
+		AuthorizationResponse authResp = client
+				.authorize(new AuthorizationRequest(sourceMessage.getSourceAuthLevel(), groupId));
 
-		LOGGER.info("Inside Notify Service. Source has access to post on group " + sourceMessage.getGroupId() + ". "
-				+ "\nUsing HttpClient to pass message to DLP Service for inspection.");
+		if (!authResp.isAuthorized())
+			throw new UserNotAuthorizedException(authResp.getReason());
+
 		// Inspection & termination on violation
-		dlpServiceInvoker.checkForSensitiveData(message);
+		dlpServiceClient.checkForSensitiveData(message);
 
 		// DeIdentification - Redact/Mask PIIs.
-		String deidentifiedStr = dlpServiceInvoker.getDeidentifiedString(message);
+		String deidentifiedStr = dlpServiceClient.getDeidentifiedString(message);
 
 		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found. The deidentified message is \n"
 				+ deidentifiedStr);

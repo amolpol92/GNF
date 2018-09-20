@@ -3,14 +3,14 @@ package app.service.authorization.model;
 import java.util.Map;
 
 /**
- * @author adarshsinghal695
+ * @author AdarshSinghal
  *
  */
 public class LogRequest {
 
 	private String message;
 	private String severity;
-	private MonitoredResourceModel monitoredResource;
+	private String monitoredResource;
 	private String logName;
 	private Map<String, String> labels;
 	private SourceLocationModel sourceLocation;
@@ -22,7 +22,7 @@ public class LogRequest {
 		super();
 		this.message = messsage;
 		this.severity = severity;
-		this.monitoredResource = new MonitoredResourceModel(monitoredResource);
+		this.monitoredResource = monitoredResource;
 		this.logName = logName;
 	}
 
@@ -42,11 +42,11 @@ public class LogRequest {
 		this.severity = severity;
 	}
 
-	public MonitoredResourceModel getMonitoredResource() {
+	public String getMonitoredResource() {
 		return monitoredResource;
 	}
 
-	public void setMonitoredResource(MonitoredResourceModel monitoredResource) {
+	public void setMonitoredResource(String monitoredResource) {
 		this.monitoredResource = monitoredResource;
 	}
 
@@ -76,8 +76,7 @@ public class LogRequest {
 
 	@Override
 	public String toString() {
-		return "LogRequest [message=" + message + ", severity=" + severity 
-				+ ", monitoredResource=" + monitoredResource
+		return "LogRequest [message=" + message + ", severity=" + severity + ", monitoredResource=" + monitoredResource
 				+ ", logName=" + logName + ", labels=" + labels + ", sourceLocation=" + sourceLocation + "]";
 	}
 

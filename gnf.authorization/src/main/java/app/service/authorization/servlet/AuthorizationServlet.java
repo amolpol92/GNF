@@ -16,7 +16,6 @@ import com.google.gson.GsonBuilder;
 import app.service.authorization.AuthorizationService;
 import app.service.authorization.exception.ExternalUserNotAllowedException;
 import app.service.authorization.exception.InsufficientAuthorizationException;
-import app.service.authorization.exception.MessageNotLoggedException;
 import app.service.authorization.exception.NoSuchGroupException;
 import app.service.authorization.model.AuthorizationRequest;
 import app.service.authorization.model.AuthorizationResponse;
@@ -80,8 +79,6 @@ public class AuthorizationServlet extends HttpServlet {
 		} catch (InsufficientAuthorizationException e) {
 			authResponse.setAuthorized(false);
 			authResponse.setReason(e.getMessage());
-		} catch (MessageNotLoggedException e) {
-			//If not logged but authorized then ignore
 		}
 
 		String json = gson.toJson(authResponse);

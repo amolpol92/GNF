@@ -1,5 +1,6 @@
-package app.dao;
+package app.service.authorization;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,9 +8,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.exception.NoSuchGroupException;
-import app.logging.CloudLogger;
-import app.model.UserGroupDetails;
+import org.apache.http.client.ClientProtocolException;
+
+import app.service.authorization.exception.NoSuchGroupException;
+import app.service.authorization.model.UserGroupDetails;
+
 
 /**
  * @author AdarshSinghal
@@ -17,7 +20,7 @@ import app.model.UserGroupDetails;
  */
 public class UserGroupDetailsDAO {
 
-	private CloudLogger LOGGER = CloudLogger.getLogger();
+	private LogServiceClient LOGGER = LogServiceClient.getLogger();
 
 	private Connection connection;
 
@@ -39,8 +42,11 @@ public class UserGroupDetailsDAO {
 	 * @return group auth level : int
 	 * @throws SQLException
 	 * @throws NoSuchGroupException
+	 * @throws  
+	 * @throws IOException 
+	 * @throws ClientProtocolException 
 	 */
-	public int getAuthLevel(int groupId) throws SQLException, NoSuchGroupException {
+	public int getAuthLevel(int groupId) throws SQLException, NoSuchGroupException, ClientProtocolException, IOException {
 		String sql = "SELECT group_auth_level FROM user_group_details WHERE group_id = ?";
 
 		PreparedStatement ps = connection.prepareStatement(sql);
@@ -52,7 +58,7 @@ public class UserGroupDetailsDAO {
 		if (rs.next()) {
 			grpAuthLevel = rs.getInt("group_auth_level");
 		} else {
-			LOGGER.warning("Inside Authorization Service . Terminating transaction. "
+			LOGGER.warning("Inside Authorization Service. Terminating transaction. "
 					+ "Reason:- Source trying to post on a group that doesn't exist in database.");
 			throw new NoSuchGroupException();
 		}

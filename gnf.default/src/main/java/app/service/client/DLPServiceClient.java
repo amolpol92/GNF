@@ -1,4 +1,4 @@
-package app.service.dlp;
+package app.service.client;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -27,7 +27,7 @@ import app.model.MessageWrapper;
  * @author AdarshSinghal
  *
  */
-public class DLPServiceInvoker {
+public class DLPServiceClient {
 
 	private CloudLogger LOGGER = CloudLogger.getLogger();
 
@@ -65,7 +65,6 @@ public class DLPServiceInvoker {
 	 * @throws IOException
 	 */
 	public String getDeidentifiedString(String message) throws IOException {
-		LOGGER.info("Performing POST on " + ConstantsURL.DLP_DEIDENTIFY_URL);
 
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		HttpPost httppost = new HttpPost(ConstantsURL.DLP_DEIDENTIFY_URL);
@@ -94,7 +93,7 @@ public class DLPServiceInvoker {
 		InspectionResultWrapper inspectionResults = getInspectionResult(inputMessage);
 
 		if (inspectionResults.getSensitiveDataFlag()) {
-			LOGGER.warning("Inside DLP Service. Terminating the transaction. Reason:- PAN data present. "
+			LOGGER.info("Inside Notify Service. Terminating the transaction. Reason:- PAN data present. "
 					+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
 			throw new PANDataFoundSecurityViolationException();
 		}

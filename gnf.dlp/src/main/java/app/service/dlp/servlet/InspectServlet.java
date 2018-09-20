@@ -23,6 +23,15 @@ public class InspectServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
 	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		Gson gson = new GsonBuilder().create();
+		MessageWrapper messageWrapper = new MessageWrapper("Message on which you want to perform DLP Inspection");
+		String json = gson.toJson(messageWrapper);
+		resp.setContentType("application/json");
+		resp.getWriter().print(json);
+	}
+
+	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
 		response.setContentType("application/json");

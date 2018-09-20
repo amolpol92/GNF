@@ -19,18 +19,25 @@ import app.service.dlp.DLPService;
 import app.service.dlp.model.MessageWrapper;
 
 /**
- * Servlet implementation class DeidentifyServlet
+ * @author AdarshSinghal
+ *
  */
 @WebServlet("/deidentify")
 public class DeidentifyServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private static final Logger LOGGER = Logger.getLogger(DeidentifyServlet.class.getName());
 
-	/**
-	 * @see HttpServlet#HttpServlet()
-	 */
 	public DeidentifyServlet() {
 		super();
+	}
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		Gson gson = new GsonBuilder().create();
+		MessageWrapper messageWrapper = new MessageWrapper("Message on which you want to perform DLP Inspection");
+		String json = gson.toJson(messageWrapper);
+		resp.setContentType("application/json");
+		resp.getWriter().print(json);
 	}
 
 	/**
