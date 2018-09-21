@@ -43,7 +43,7 @@ td, th {
 
         <tr>
           <th>URL</th>
-          <td>/log</td>
+          <td><b>/log</b> (Only Logging to Stackdriver)&emsp;OR &emsp;<b>/persistlog</b> (Persist to DB)</td>
         </tr>
 
         <tr>
