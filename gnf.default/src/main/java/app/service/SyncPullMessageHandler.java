@@ -32,10 +32,7 @@ public class SyncPullMessageHandler {
 	 * @throws SQLException
 	 * @throws ClassNotFoundException
 	 */
-	public List<SubscriberMessage> pullMessages(String maxMessageStr, String returnImmediatelyStr) throws IOException {
-		int maxMessage = Integer.parseInt(maxMessageStr);
-
-		boolean returnImmediately = Boolean.parseBoolean(returnImmediatelyStr);
+	public List<SubscriberMessage> pullMessages(int maxMessage, boolean returnImmediately) throws IOException {
 
 		SyncPullAction syncPullAction = new SyncPullAction();
 		List<ReceivedMessage> receivedMessages = syncPullAction.getReceivedMessages(maxMessage, returnImmediately);

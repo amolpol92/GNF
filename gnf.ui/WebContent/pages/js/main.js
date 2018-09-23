@@ -7,10 +7,10 @@
  * */
 
 $(document).ready(function(){
-
+	var domain = 'https://possible-haven-212003.appspot.com';
 	// Load topics into select list
 	(function getTopics(){
-		$.get('/api/topic/list', function(data){
+		$.get(domain+'/api/topic/list', function(data){
 			if(data.topics.length>1){
 				var allOption = '<option value='+data.topics+'>All</option>';
 				$('#topic-name-select').append(allOption);

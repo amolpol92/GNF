@@ -7,7 +7,7 @@
  * */
 
 $(document).ready(function() {
-
+	var domain = 'https://possible-haven-212003.appspot.com';
   $('#loading-div, #loading').addClass('visible').hide().delay(500)
       .fadeIn(300);
 
@@ -15,7 +15,7 @@ $(document).ready(function() {
       .DataTable(
           {
             "ajax" : {
-              "url": "/pulldata",
+              "url": domain+"/pulldata",
               "data": function ( d ) {
                 console.log(d);
               }

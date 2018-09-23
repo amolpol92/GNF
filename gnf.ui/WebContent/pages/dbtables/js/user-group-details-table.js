@@ -9,11 +9,12 @@
 $(document).ready(
     function() {
       console.log('js loaded');
+      var domain = 'https://possible-haven-212003.appspot.com';
       $('#loading-div, #loading').addClass('visible').hide().delay(500).fadeIn(
           300);
 
-      $('#userdetails-datatable').DataTable({
-        "ajax" : "/userdetailsdata",
+      $('#user-grp-details-datatable').DataTable({
+        "ajax" : domain+"/api/user-group-details",
         columnDefs : [ {
           width : '20%',
           targets : 0
@@ -21,26 +22,16 @@ $(document).ready(
         fixedColumns : true,
 
         "columns" : [ {
-          "data" : "userId"
+          "data" : "groupId"
         }, {
-          "data" : "userName"
+          "data" : "groupName"
         }, {
-          "data" : "emailId"
-        }, {
-          "data" : "mobileNumber"
-        }, {
-          "data" : function(d) {
-              return getCheckbox(d.emailFlag, 'u-'+d.userId+'-email-checkbox');
-          }
-        }, {
-          "data" : function(d) {
-              return getCheckbox(d.smsFlag, 'u-'+d.userId+'-sms-checkbox');
-          }
+          "data" : "groupAuthLevel"
         } ],
         "initComplete" : function(settings, json) {
           initCheckBoxEvent();
           $('#loading').detach();
-          $('#userdetails-data *').addClass('visible').hide().fadeIn(500);
+          $('#user-grp-details-data *').addClass('visible').hide().fadeIn(500);
         },
         mark : true
       });
@@ -77,7 +68,7 @@ $(document).ready(
       
       function updateUserPreference(json){
         
-        $.post('/api/updateUserPreference', JSON.stringify(json), function(response){
+        $.post(domain+'/api/updateUserPreference', JSON.stringify(json), function(response){
           if(response!==undefined && response.rowsModified>0){
             //TODO Display Message
           }

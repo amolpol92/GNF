@@ -33,7 +33,7 @@
         <div class="col-md-4"></div>
         <div class="col-md-4">
           <div id="sync-pull-form-div">
-            <form id="pull-form" action="/pullmessage" method="POST">
+            <form id="pull-form" action="/pull-messages" method="POST">
               <div class="form-group">
                 <label for="max-message"><%=translator.translate("Maximum Message")%></label> <input
                   id="max-message" name="max-message" type="number"

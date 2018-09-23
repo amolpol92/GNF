@@ -14,6 +14,7 @@ import app.logging.CloudLogger;
 import app.model.AuthorizationRequest;
 import app.model.AuthorizationResponse;
 import app.model.InspectionResultWrapper;
+import app.model.PublisherMessage;
 import app.model.SourceMessage;
 import app.service.client.AuthServiceClient;
 import app.service.client.DLPServiceClient;
@@ -53,11 +54,11 @@ public class NotifyService {
 	 * @param pubsubMessage
 	 * @return list of message ids
 	 */
-	public List<String> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
 		LOGGER.info("Inside Notify Service. Publishing messages on these topics -> " + topics
 				+ ". com.google.pubsub.v1.PubsubMessage:\n" + pubsubMessage);
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
-		List<String> messageIds = publisher.publishMessage(topics, pubsubMessage);
+		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage);
 		return messageIds;
 	}
 
@@ -101,7 +102,7 @@ public class NotifyService {
 	 * @throws PANDataFoundSecurityViolationException
 	 * @throws UserNotAuthorizedException
 	 */
-	public List<String> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException, IOException,
+	public List<PublisherMessage> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException, IOException,
 			PANDataFoundSecurityViolationException, UserNotAuthorizedException {
 		String message = sourceMessage.getMessage();
 		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.");
@@ -131,7 +132,7 @@ public class NotifyService {
 				+ ". Delegating responsibility to NotifyServiceMessagePublisher.");
 
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
-		List<String> messageIds = publisher.publishMessage(topicNames, pubsubMessage);
+		List<PublisherMessage> messageIds = publisher.publishMessage(topicNames, pubsubMessage);
 		return messageIds;
 	}
 
