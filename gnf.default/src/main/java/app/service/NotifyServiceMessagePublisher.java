@@ -28,9 +28,11 @@ public class NotifyServiceMessagePublisher {
 	 * @param pubsubMessage
 	 * @return messageIdList
 	 */
-	public List<String> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
 
-		List<String> messageIds = new ArrayList<>();
+		List<PublisherMessage> messageIds = new ArrayList<>();
+		
+		
 
 		topics.forEach(topic -> {
 
@@ -49,13 +51,13 @@ public class NotifyServiceMessagePublisher {
 			String globalTxnId = pubsubMessage.getAttributesOrThrow("globalTransactionId");
 			PublisherMessage publishedMessage = new PublisherMessage(stringUtf8, topic);
 			publishedMessage.setGlobalTransactionId(globalTxnId);
-
 			publishedMessage.setPublishTime(DateUtility.getCurrentTimestamp());
+			
 			if (messageId != null && !messageId.isEmpty()) {
 				publishedMessage.setMessageId(messageId);
 				LOGGER.info("Inside NotifyServiceMessagePublisher. " + "Successfuly published message on topic: "
 						+ topic + ", Message: \n" + publishedMessage);
-				messageIds.add(messageId);
+				messageIds.add(publishedMessage);
 			}
 
 			persistInDB(publishedMessage);
@@ -71,7 +73,7 @@ public class NotifyServiceMessagePublisher {
 	 * @param pubsubMessage
 	 * @return list of messageIds
 	 */
-	public List<String> publishMessage(String commaSeparatedTopics, PubsubMessage pubsubMessage) {
+	public List<PublisherMessage> publishMessage(String commaSeparatedTopics, PubsubMessage pubsubMessage) {
 		List<String> topics = ListUtils.getListFromCSV(commaSeparatedTopics);
 		return publishMessage(topics, pubsubMessage);
 

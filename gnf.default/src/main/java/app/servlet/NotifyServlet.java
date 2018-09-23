@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,10 +12,15 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
 import app.exception.UserNotAuthorizedException;
 import app.logging.CloudLogger;
+import app.model.NotifyResponse;
+import app.model.PublisherMessage;
 import app.model.SourceMessage;
 import app.service.NotifyService;
 
@@ -30,53 +36,69 @@ public class NotifyServlet extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		response.getWriter().append("This operation can only be performed using POST");
+		SourceMessage sourceMessage = new SourceMessage(1, 1, "A sample message");
+
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String json = gson.toJson(sourceMessage);
+		response.getWriter().println(json);
+
 	}
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		SourceMessage sourceMessage = getSourceMessage(request);
-		List<String> messageIds = null;
+
 		NotifyService notifyService = new NotifyService();
-		String gbTxnId = "g" + new Date().getTime() + "r" + (int) (Math.random() * 100);
+
+		response.setContentType("application/json");
+		List<PublisherMessage> publishedMessages = null;
+		try {
+			publishedMessages = notifyService.notify(sourceMessage);
+		} catch (SQLException | NoSuchGroupException | PANDataFoundSecurityViolationException
+				| UserNotAuthorizedException e) {
+			if (isNotAuthorized(e)) {
+
+				response.setStatus(4030);
+			}
+
+			NotifyResponse notifyRes = new NotifyResponse(e.getMessage());
+			response.getWriter().println(gson.toJson(notifyRes));
+
+			return;
+		}
+
+		if (publishedMessages != null && publishedMessages.size() != 0) {
+			NotifyResponse notifyRes = new NotifyResponse(publishedMessages);
+			String json = gson.toJson(notifyRes);
+			response.getWriter().println(json);
+		}
+
+	}
+
+	private boolean isNotAuthorized(Exception exception) {
+		return (exception instanceof NoSuchGroupException || exception instanceof PANDataFoundSecurityViolationException
+				|| exception instanceof UserNotAuthorizedException);
+	}
+
+	private SourceMessage getSourceMessage(HttpServletRequest request) throws IOException {
+		Gson gson = new Gson();
+
+		String inputJson = request.getReader().lines().collect(Collectors.joining());
+		SourceMessage sourceMessage = gson.fromJson(inputJson, SourceMessage.class);
+
+		// Generate Global transaction id if not provided from source
+		String gbTxnId = sourceMessage.getGlobalTxnId();
+		if (gbTxnId == null || gbTxnId.isEmpty()) {
+			gbTxnId = "g" + new Date().getTime() + "r" + (int) (Math.random() * 100);
+		}
+
 		sourceMessage.setGlobalTxnId(gbTxnId);
 		LOGGER.info("Inside NotifyServlet. Added Global Txn Id to Source Message. \nGlobal Txn Id is \n"
 				+ sourceMessage.getGlobalTxnId() + ", Source Auth Level is " + sourceMessage.getSourceAuthLevel()
 				+ ", Target group id is " + sourceMessage.getGroupId());
 
-		boolean isExceptionOccurred = false;
-		try {
-			messageIds = notifyService.notify(sourceMessage);
-		} catch (SQLException | NoSuchGroupException | PANDataFoundSecurityViolationException
-				| UserNotAuthorizedException e) {
-			request.setAttribute("exceptionMsg", e.getMessage());
-			isExceptionOccurred = true;
-			request.setAttribute("isExceptionOccured", isExceptionOccurred);
-			request.getRequestDispatcher("/pages/MessageSource.jsp").forward(request, response);
-		}
-
-		request.setAttribute("gbTxnId", gbTxnId);
-		request.setAttribute("messageIds", messageIds);
-
-		if (messageIds != null && messageIds.size() != 0) {
-			request.getRequestDispatcher("/results/success.jsp").forward(request, response);
-		} else {
-			if (!isExceptionOccurred)
-				request.getRequestDispatcher("/results/failure.jsp").forward(request, response);
-		}
-
+		return sourceMessage;
 	}
-
-	private SourceMessage getSourceMessage(HttpServletRequest request) {
-		String srcAuthLevelStr = request.getParameter("src-auth-level");
-		String groupIdStr = request.getParameter("group-id");
-		String message = request.getParameter("message");
-
-		int srcAuthLevel = Integer.parseInt(srcAuthLevelStr);
-		int groupId = Integer.parseInt(groupIdStr);
-		SourceMessage srcMessage = new SourceMessage(srcAuthLevel, groupId, message);
-		return srcMessage;
-	}
-
 }

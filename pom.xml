@@ -116,5 +116,6 @@
 		<module>gnf.dlp</module>
 		<module>gnf.logging</module>
 		<module>gnf.authorization</module>
+		<module>gnf.ui</module>
 	</modules>
 </project>

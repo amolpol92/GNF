@@ -8,12 +8,13 @@
 
 $(document).ready(
     function() {
+    	var domain = 'https://possible-haven-212003.appspot.com';
       console.log('js loaded');
       $('#loading-div, #loading').addClass('visible').hide().delay(500).fadeIn(
           300);
 
       $('#group-membership-datatable').DataTable({
-        "ajax" : "/api/get-user-group-membership",
+        "ajax" : domain+"/api/get-user-group-membership",
         columnDefs : [ {
           width : '20%',
           targets : 0

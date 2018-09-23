@@ -8,6 +8,8 @@
 
 $(document).ready(function() {
   
+	var domain = 'https://possible-haven-212003.appspot.com';
+	
   $('#inspect-btn').click(function() {
     var randomMsg = $('#random-user-message').val();
     if (randomMsg.length < 1) {
@@ -26,7 +28,7 @@ $(document).ready(function() {
     console.log('POST /inspect');
     console.log(JSON.stringify(jsondata));
     $.ajax({
-      url : '/inspect',
+      url : domain+'/inspect',
       data : jsondata,
       type : 'post',
       cache : false,
@@ -49,7 +51,7 @@ $(document).ready(function() {
 	  console.log('POST /deidentify');
 	    console.log(JSON.stringify(jsondata));
 	    $.ajax({
-	        url : '/deidentify',
+	        url : domain+'/deidentify',
 	        data : jsondata,
 	        type : 'post',
 	        cache : false,

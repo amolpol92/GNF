@@ -7,12 +7,12 @@
  * */
 
 $(document).ready(function() {
-	
+	var domain = 'https://possible-haven-212003.appspot.com';
 	$('#loading-div, #loading').addClass('visible').hide().delay(500).fadeIn(300);
 
 	$(document).ready(function() {
 	    $('#publish-datatable').DataTable( {
-	        "ajax": "/publishdata",
+	        "ajax": domain+"/publishdata",
 	        "order": [[ 3, 'desc' ]],
 	        "columns": [
 	            { "data": "messageId" },

@@ -8,12 +8,13 @@
 
 $(document).ready(
     function() {
+    	var domain = 'https://possible-haven-212003.appspot.com';
       console.log('js loaded');
       $('#loading-div, #loading').addClass('visible').hide().delay(500).fadeIn(
           300);
 
       $('#message-status-datatable').DataTable({
-        "ajax" : "/api/getMsgStatusCacheData",
+        "ajax" : domain+"/api/getMsgStatusCacheData",
         columnDefs : [ {
           width : '20%',
           targets : 0

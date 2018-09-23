@@ -8,12 +8,13 @@
 
 $(document).ready(
     function() {
+    	var domain = 'https://possible-haven-212003.appspot.com';
       console.log('js loaded');
       $('#loading-div, #loading').addClass('visible').hide().delay(500).fadeIn(
           300);
 
-      $('#user-grp-details-datatable').DataTable({
-        "ajax" : "/api/user-group-details",
+      $('#userdetails-datatable').DataTable({
+        "ajax" : domain+"/userdetailsdata",
         columnDefs : [ {
           width : '20%',
           targets : 0
@@ -21,16 +22,26 @@ $(document).ready(
         fixedColumns : true,
 
         "columns" : [ {
-          "data" : "groupId"
+          "data" : "userId"
         }, {
-          "data" : "groupName"
+          "data" : "userName"
         }, {
-          "data" : "groupAuthLevel"
+          "data" : "emailId"
+        }, {
+          "data" : "mobileNumber"
+        }, {
+          "data" : function(d) {
+              return getCheckbox(d.emailFlag, 'u-'+d.userId+'-email-checkbox');
+          }
+        }, {
+          "data" : function(d) {
+              return getCheckbox(d.smsFlag, 'u-'+d.userId+'-sms-checkbox');
+          }
         } ],
         "initComplete" : function(settings, json) {
           initCheckBoxEvent();
           $('#loading').detach();
-          $('#user-grp-details-data *').addClass('visible').hide().fadeIn(500);
+          $('#userdetails-data *').addClass('visible').hide().fadeIn(500);
         },
         mark : true
       });

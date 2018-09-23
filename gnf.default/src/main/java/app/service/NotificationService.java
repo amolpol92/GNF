@@ -21,7 +21,7 @@ import app.model.SubscriberMessage;
  *
  */
 public class NotificationService {
-	
+
 	private UserService userService;
 
 	public NotificationService() {
@@ -36,9 +36,9 @@ public class NotificationService {
 	 * @return List&lt;SubscriberMessage&gt;
 	 * @throws IOException
 	 */
-	public List<SubscriberMessage> pullMessages(String maxMessageStr, String returnImmediatelyStr) throws IOException {
+	public List<SubscriberMessage> pullMessages(int maxMessage, boolean returnImmediately) throws IOException {
 		SyncPullMessageHandler pullHandler = new SyncPullMessageHandler();
-		return pullHandler.pullMessages(maxMessageStr, returnImmediatelyStr);
+		return pullHandler.pullMessages(maxMessage, returnImmediately);
 	}
 
 	/**
@@ -49,8 +49,8 @@ public class NotificationService {
 	 * @throws IOException
 	 */
 	public void sendMessagesToUser(List<SubscriberMessage> messageList) throws ServletException, IOException {
-		
-		userService.sendMessagesToUser(messageList);
+		if (messageList != null && !messageList.isEmpty())
+			userService.sendMessagesToUser(messageList);
 	}
 
 }
