@@ -37,9 +37,9 @@ public class NotifyServiceMessagePublisher {
 		topics.forEach(topic -> {
 
 			String messageId = "";
-
+			String globalTxnId = pubsubMessage.getAttributesOrThrow("globalTransactionId");
 			try {
-				LOGGER.info("Inside NotifyServiceMessagePublisher. Publishing message on topic: " + topic);
+				LOGGER.info("Inside NotifyServiceMessagePublisher. Publishing message on topic: " + topic, globalTxnId);
 				GenericMessagePublisher publisher = new GenericMessagePublisher();
 				messageId = publisher.publishMessage(topic, pubsubMessage);
 
@@ -48,7 +48,7 @@ public class NotifyServiceMessagePublisher {
 			}
 
 			String stringUtf8 = pubsubMessage.getData().toStringUtf8();
-			String globalTxnId = pubsubMessage.getAttributesOrThrow("globalTransactionId");
+			
 			PublisherMessage publishedMessage = new PublisherMessage(stringUtf8, topic);
 			publishedMessage.setGlobalTransactionId(globalTxnId);
 			publishedMessage.setPublishTime(DateUtility.getCurrentTimestamp());
@@ -56,7 +56,8 @@ public class NotifyServiceMessagePublisher {
 			if (messageId != null && !messageId.isEmpty()) {
 				publishedMessage.setMessageId(messageId);
 				LOGGER.info("Inside NotifyServiceMessagePublisher. " + "Successfuly published message on topic: "
-						+ topic + ", Message: \n" + publishedMessage);
+
+						+ topic, globalTxnId);
 				messageIds.add(publishedMessage);
 			}
 

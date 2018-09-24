@@ -55,8 +55,9 @@ public class NotifyService {
 	 * @return list of message ids
 	 */
 	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
+
 		LOGGER.info("Inside Notify Service. Publishing messages on these topics -> " + topics
-				+ ". com.google.pubsub.v1.PubsubMessage:\n" + pubsubMessage);
+				+ ". com.google.pubsub.v1.PubsubMessage:\n" + pubsubMessage, pubsubMessage.getAttributesOrThrow("globalTransactionId"));
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
 		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage);
 		return messageIds;
@@ -105,7 +106,7 @@ public class NotifyService {
 	public List<PublisherMessage> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException, IOException,
 			PANDataFoundSecurityViolationException, UserNotAuthorizedException {
 		String message = sourceMessage.getMessage();
-		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.");
+		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.", sourceMessage.getGlobalTxnId());
 		// Application level Source authorization against Target Group
 		AuthServiceClient client = new AuthServiceClient();
 		String groupId = String.valueOf(sourceMessage.getGroupId());
@@ -121,15 +122,15 @@ public class NotifyService {
 		// DeIdentification - Redact/Mask PIIs.
 		String deidentifiedStr = dlpServiceClient.getDeidentifiedString(message);
 
-		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found. The deidentified message is \n"
-				+ deidentifiedStr);
+		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found."
+				, sourceMessage.getGlobalTxnId());
 
 		PubsubMessage pubsubMessage = SourceToPubSubMessageConverter.convert(sourceMessage, deidentifiedStr);
 
 		String topicNames = ExternalProperties.getAppConfig("app.gc.pubsub.topic.layer1");
 
 		LOGGER.info("Inside Notify Service. Need to publish message on " + topicNames
-				+ ". Delegating responsibility to NotifyServiceMessagePublisher.");
+				+ ". Delegating responsibility to NotifyServiceMessagePublisher.", sourceMessage.getGlobalTxnId());
 
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
 		List<PublisherMessage> messageIds = publisher.publishMessage(topicNames, pubsubMessage);
