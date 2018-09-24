@@ -1,7 +1,6 @@
 package app.logging;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.google.cloud.MonitoredResource;
@@ -80,25 +79,22 @@ public class CloudLogger {
 
 	}
 	
-	public void info(String message, String globalTxnId) {
+	public void info(String message, Map<String,String> labels) {
 		String monitoredResourceType = MonitoredResourceType.GAE_APP.toString();
 		String logName = "Default";
-		log(message, Severity.INFO, monitoredResourceType, logName, globalTxnId);
+		log(message, Severity.INFO, monitoredResourceType, logName, labels);
 	}
 	
-	public void warn(String message, String globalTxnId) {
+	public void warn(String message, Map<String,String> labels) {
 		String monitoredResourceType = MonitoredResourceType.GAE_APP.toString();
 		String logName = "Default";
-		log(message, Severity.WARNING, monitoredResourceType, logName, globalTxnId);
+		log(message, Severity.WARNING, monitoredResourceType, logName, labels);
 	}
 	
 	
-	public void log(String message, Severity severity, String monitoredResourceType, String logName, String globalTxnId) {
+	public void log(String message, Severity severity, String monitoredResourceType, String logName, Map<String,String> labels) {
 		try (Logging logging = LoggingOptions.getDefaultInstance().getService();) {
 			MonitoredResource monitoredResource = MonitoredResource.newBuilder(monitoredResourceType).build();
-			
-			Map<String,String> labels = new HashMap<>();
-			labels.put("Global Transaction Id", globalTxnId);
 			
 			LogEntry entry = LogEntry.newBuilder(StringPayload.of(message))
 					.setSeverity(severity)

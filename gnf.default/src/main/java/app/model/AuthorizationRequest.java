@@ -8,13 +8,15 @@ public class AuthorizationRequest {
 
 	private int sourceAuthLevel;
 	private String groupId;
+	private String globalTxnId;
 
 	public AuthorizationRequest() {
 	}
 
-	public AuthorizationRequest(int sourceauthLevel, String groupId) {
-		this.sourceAuthLevel = sourceauthLevel;
+	public AuthorizationRequest(int sourceAuthLevel, String groupId, String globalTxnId) {
+		this.sourceAuthLevel = sourceAuthLevel;
 		this.groupId = groupId;
+		this.globalTxnId = globalTxnId;
 	}
 
 	public int getSourceAuthLevel() {
@@ -33,9 +35,18 @@ public class AuthorizationRequest {
 		this.groupId = groupId;
 	}
 
+	public String getGlobalTxnId() {
+		return globalTxnId;
+	}
+
+	public void setGlobalTxnId(String globalTxnId) {
+		this.globalTxnId = globalTxnId;
+	}
+
 	@Override
 	public String toString() {
-		return "SourceMessage [sourceAuthLevel=" + sourceAuthLevel + ", groupId=" + groupId + "]";
+		return "AuthorizationRequest [sourceAuthLevel=" + sourceAuthLevel + ", groupId=" + groupId + ", globalTxnId="
+				+ globalTxnId + "]";
 	}
 
 }

@@ -2,7 +2,9 @@ package app.servlet;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
@@ -58,7 +60,11 @@ public class PublishServlet extends HttpServlet {
 		PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data)
 				.putAttributes("globalTransactionId", gbTxnId).build();
 		NotifyService notifyService = new NotifyService();
-		List<PublisherMessage> messageIds = notifyService.publishMessage(topics, pubsubMessage);
+
+		Map<String, String> labels = new HashMap<>();
+		labels.put("Global Transaction Id", gbTxnId);
+
+		List<PublisherMessage> messageIds = notifyService.publishMessage(topics, pubsubMessage, labels);
 
 		PublishResponse publishResponse = new PublishResponse(gbTxnId, messageIds);
 		String json = gson.toJson(publishResponse);

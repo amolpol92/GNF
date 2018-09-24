@@ -16,6 +16,7 @@ import org.eclipse.jetty.server.Response;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import app.model.DLPClientRequest;
 import app.model.MessageWrapper;
 import app.service.client.DLPServiceClient;
 
@@ -47,9 +48,9 @@ public class DeidentifyServlet extends HttpServlet {
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		MessageWrapper messageWrapper;
+		DLPClientRequest messageWrapper;
 		try {
-			messageWrapper = gson.fromJson(inputJson, MessageWrapper.class);
+			messageWrapper = gson.fromJson(inputJson, DLPClientRequest.class);
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());
 			response.setStatus(Response.SC_BAD_REQUEST);
@@ -57,7 +58,7 @@ public class DeidentifyServlet extends HttpServlet {
 		}
 
 		DLPServiceClient serviceInvoker = new DLPServiceClient();
-		String deidentifiedRes = serviceInvoker.getDeidentifiedString(messageWrapper.getMessage());
+		String deidentifiedRes = serviceInvoker.getDeidentifiedString(messageWrapper);
 		String json = gson.toJson(new MessageWrapper(deidentifiedRes));
 
 		printJsonResponse(response, json);

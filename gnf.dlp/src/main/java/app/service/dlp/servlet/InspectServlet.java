@@ -14,8 +14,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.service.dlp.DLPService;
+import app.service.dlp.model.DLPClientRequest;
 import app.service.dlp.model.InspectionResultWrapper;
-import app.service.dlp.model.MessageWrapper;
 
 @WebServlet(name = "Scan Data", urlPatterns = { "/inspect" })
 public class InspectServlet extends HttpServlet {
@@ -25,8 +25,8 @@ public class InspectServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Gson gson = new GsonBuilder().create();
-		MessageWrapper messageWrapper = new MessageWrapper("Message on which you want to perform DLP Inspection");
-		String json = gson.toJson(messageWrapper);
+		DLPClientRequest dlpRequest = new DLPClientRequest("Sample Message", 1, "1", "g123456789r10");
+		String json = gson.toJson(dlpRequest);
 		resp.setContentType("application/json");
 		resp.getWriter().print(json);
 	}
@@ -38,7 +38,7 @@ public class InspectServlet extends HttpServlet {
 
 		String inputJson = request.getReader().lines().collect(Collectors.joining());
 		Gson gson = new GsonBuilder().create();
-		MessageWrapper messageWrapper = gson.fromJson(inputJson, MessageWrapper.class);
+		DLPClientRequest messageWrapper = gson.fromJson(inputJson, DLPClientRequest.class);
 		String inputMessage = messageWrapper.getMessage();
 
 		if (inputMessage.isEmpty()) {

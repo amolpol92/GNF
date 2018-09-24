@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.google.pubsub.v1.PubsubMessage;
 
@@ -11,7 +12,6 @@ import app.dao.PublisherDao;
 import app.logging.CloudLogger;
 import app.model.PublisherMessage;
 import app.util.DateUtility;
-import app.util.ListUtils;
 
 /**
  * Responsible for publishing PubsubMessage to Pubsub Topic
@@ -28,18 +28,18 @@ public class NotifyServiceMessagePublisher {
 	 * @param pubsubMessage
 	 * @return messageIdList
 	 */
-	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage,
+			Map<String, String> labels) {
 
 		List<PublisherMessage> messageIds = new ArrayList<>();
-		
-		
 
 		topics.forEach(topic -> {
 
 			String messageId = "";
 			String globalTxnId = pubsubMessage.getAttributesOrThrow("globalTransactionId");
 			try {
-				LOGGER.info("Inside NotifyServiceMessagePublisher. Publishing message on topic: " + topic, globalTxnId);
+
+				LOGGER.info("Inside NotifyService. Publishing message on topic: " + topic, labels);
 				GenericMessagePublisher publisher = new GenericMessagePublisher();
 				messageId = publisher.publishMessage(topic, pubsubMessage);
 
@@ -48,16 +48,13 @@ public class NotifyServiceMessagePublisher {
 			}
 
 			String stringUtf8 = pubsubMessage.getData().toStringUtf8();
-			
+
 			PublisherMessage publishedMessage = new PublisherMessage(stringUtf8, topic);
 			publishedMessage.setGlobalTransactionId(globalTxnId);
 			publishedMessage.setPublishTime(DateUtility.getCurrentTimestamp());
-			
+
 			if (messageId != null && !messageId.isEmpty()) {
 				publishedMessage.setMessageId(messageId);
-				LOGGER.info("Inside NotifyServiceMessagePublisher. " + "Successfuly published message on topic: "
-
-						+ topic, globalTxnId);
 				messageIds.add(publishedMessage);
 			}
 
@@ -66,17 +63,6 @@ public class NotifyServiceMessagePublisher {
 		});
 
 		return messageIds;
-
-	}
-
-	/**
-	 * @param commaSeparatedTopics
-	 * @param pubsubMessage
-	 * @return list of messageIds
-	 */
-	public List<PublisherMessage> publishMessage(String commaSeparatedTopics, PubsubMessage pubsubMessage) {
-		List<String> topics = ListUtils.getListFromCSV(commaSeparatedTopics);
-		return publishMessage(topics, pubsubMessage);
 
 	}
 

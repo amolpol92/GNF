@@ -16,7 +16,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import app.service.dlp.DLPService;
-import app.service.dlp.model.MessageWrapper;
+import app.service.dlp.model.DLPClientRequest;
 
 /**
  * @author AdarshSinghal
@@ -34,8 +34,8 @@ public class DeidentifyServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		Gson gson = new GsonBuilder().create();
-		MessageWrapper messageWrapper = new MessageWrapper("Message on which you want to perform DLP Inspection");
-		String json = gson.toJson(messageWrapper);
+		DLPClientRequest dlpRequest = new DLPClientRequest("Sample Message", 1, "1", "g123456789r10");
+		String json = gson.toJson(dlpRequest);
 		resp.setContentType("application/json");
 		resp.getWriter().print(json);
 	}
@@ -50,13 +50,13 @@ public class DeidentifyServlet extends HttpServlet {
 		String inputJson = request.getReader().lines().collect(Collectors.joining());
 		Gson gson = new GsonBuilder().create();
 
-		MessageWrapper messageWrapper = new MessageWrapper();
+		DLPClientRequest dlpRequest = new DLPClientRequest("Sample Message", 1, "1", "g123456789r10");
 		try {
-			messageWrapper = gson.fromJson(inputJson, MessageWrapper.class);
+			dlpRequest = gson.fromJson(inputJson, DLPClientRequest.class);
 		} catch (Exception e) {
 			LOGGER.info("Input Json -> " + inputJson + " \n" + e.getMessage());
 		}
-		String inputMessage = messageWrapper.getMessage();
+		String inputMessage = dlpRequest.getMessage();
 
 		if (inputMessage.isEmpty()) {
 			setResponse(response, "");

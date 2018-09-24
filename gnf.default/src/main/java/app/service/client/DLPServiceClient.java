@@ -17,6 +17,7 @@ import com.google.gson.GsonBuilder;
 import app.constants.ConstantsURL;
 import app.exception.PANDataFoundSecurityViolationException;
 import app.logging.CloudLogger;
+import app.model.DLPClientRequest;
 import app.model.InspectionResultWrapper;
 import app.model.MessageWrapper;
 
@@ -36,14 +37,14 @@ public class DLPServiceClient {
 	 * @return inspectResult
 	 * @throws IOException
 	 */
-	public InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
+	public InspectionResultWrapper getInspectionResult(DLPClientRequest request) throws IOException {
 		LOGGER.info("Performing POST on " + ConstantsURL.DLP_INSPECT_URL);
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		HttpPost httppost = new HttpPost(ConstantsURL.DLP_INSPECT_URL);
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		StringEntity entity = new StringEntity(gson.toJson(new MessageWrapper(inputMessage)));
+		StringEntity entity = new StringEntity(gson.toJson(request));
 		httppost.setEntity(entity);
 
 		HttpResponse response = httpclient.execute(httppost);
@@ -64,13 +65,13 @@ public class DLPServiceClient {
 	 * @return deidentifiedMessage
 	 * @throws IOException
 	 */
-	public String getDeidentifiedString(String message) throws IOException {
+	public String getDeidentifiedString(DLPClientRequest request) throws IOException {
 
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		HttpPost httppost = new HttpPost(ConstantsURL.DLP_DEIDENTIFY_URL);
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		StringEntity entity = new StringEntity(gson.toJson(new MessageWrapper(message)));
+		StringEntity entity = new StringEntity(gson.toJson(request));
 		httppost.setEntity(entity);
 
 		HttpResponse response = httpclient.execute(httppost);
@@ -89,12 +90,13 @@ public class DLPServiceClient {
 	 * @throws IOException
 	 * @throws PANDataFoundSecurityViolationException
 	 */
-	public void checkForSensitiveData(String inputMessage) throws IOException, PANDataFoundSecurityViolationException {
-		InspectionResultWrapper inspectionResults = getInspectionResult(inputMessage);
+	public void checkForSensitiveData(DLPClientRequest request)
+			throws IOException, PANDataFoundSecurityViolationException {
+		InspectionResultWrapper inspectionResults = getInspectionResult(request);
 
 		if (inspectionResults.getSensitiveDataFlag()) {
 			LOGGER.info("Inside Notify Service. Terminating the transaction. Reason:- PAN data present. "
-					+ "Redacted Message:- " + getDeidentifiedString(inputMessage));
+					+ "Redacted Message:- " + getDeidentifiedString(request));
 			throw new PANDataFoundSecurityViolationException();
 		}
 
