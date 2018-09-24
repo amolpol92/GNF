@@ -12,9 +12,27 @@ public class MessageStatus {
 	private String messageId;
 	private String deliveryFlag;
 	private String destGroupId;
+	private String emailNotifierType;
+	private String smsNotifeirType;
+	
+	
+	
+	public String getEmailNotifierType() {
+		return emailNotifierType;
+	}
 
-	
-	
+	public void setEmailNotifierType(String emailNotifierType) {
+		this.emailNotifierType = emailNotifierType;
+	}
+
+	public String getSmsNotifeirType() {
+		return smsNotifeirType;
+	}
+
+	public void setSmsNotifeirType(String smsNotifeirType) {
+		this.smsNotifeirType = smsNotifeirType;
+	}
+
 	public String getDestGroupId() {
 		return destGroupId;
 	}
