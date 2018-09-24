@@ -13,9 +13,9 @@ import app.logging.CloudLogger;
 import app.model.MessageStatus;
 import app.model.SubscriberMessage;
 import app.model.UserDetailsSO;
+import app.service.notifier.BindUserMessageDetails;
 import app.servlet.HttpClientRequestHandler;
 import app.util.ExternalProperties;
-import app.util.NotifyUtility;
 
 /**
  * @author AmolPol This class is used to fetch user related information through
@@ -27,10 +27,10 @@ public class UserService {
 	private static final CloudLogger LOGGER = CloudLogger.getLogger();
 
 	/**
-	 * this method being called after pulling messages from notify subscription of
-	 * pubsub layer receives pulled messages from notify pull pubsub layer calls
-	 * decoupled UserServlet endpoint to check user and there group details to whom
-	 * we have to send message
+	 * this method being called after pulling messages from notify subscription
+	 * of pubsub layer receives pulled messages from notify pull pubsub layer
+	 * calls decoupled UserServlet endpoint to check user and there group
+	 * details to whom we have to send message
 	 * 
 	 * @param messageList
 	 * @throws ServletException
@@ -51,9 +51,9 @@ public class UserService {
 	}
 
 	/**
-	 * this method listens request on user servlet endpoint receives actual messages
-	 * after pulling from subscriptions prepares the userlist based on group from
-	 * dao and calls notify uitility to handle and publish on pubsub
+	 * this method listens request on user servlet endpoint receives actual
+	 * messages after pulling from subscriptions prepares the userlist based on
+	 * group from dao and calls notify uitility to handle and publish on pubsub
 	 * 
 	 * @param message
 	 * @throws Exception
@@ -69,8 +69,8 @@ public class UserService {
 		else
 			allUsers = userDetailsDao.getAllUserDetails();
 
-		NotifyUtility utility = new NotifyUtility();
-
+		
+		BindUserMessageDetails utility = new BindUserMessageDetails();
 		if (null != allUsers && allUsers.size() > 0)
 			utility.prepareMessagesWithPreferences(allUsers, req);
 		else {
