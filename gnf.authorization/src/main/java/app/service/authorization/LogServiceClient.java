@@ -35,7 +35,7 @@ public class LogServiceClient {
 	}
 
 	public void warning(String message) throws ClientProtocolException, IOException {
-		LogRequest logRequest = new LogRequest(message, "WARNING ", "gae_app", "AuthorizationService");
+		LogRequest logRequest = new LogRequest(message, "WARNING", "gae_app", "AuthorizationService");
 
 		log(logRequest);
 	}

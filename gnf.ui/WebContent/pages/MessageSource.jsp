@@ -70,7 +70,7 @@
               class="btn btn-dark"><%=svc.translate("Submit")%></button>
               
               <c:if test="${isExceptionOccured}">
-              <span class="float-right" style="color:red">${exceptionMsg}</span>
+              <span id="exception-msg" class="float-right" style="color:red">${exceptionMsg}</span>
               </c:if>
               
           </form>

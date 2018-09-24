@@ -43,7 +43,7 @@ public class AuthorizationServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		Gson gson = new GsonBuilder().create();
-		AuthorizationRequest sourceMessage = new AuthorizationRequest(1, "1");
+		AuthorizationRequest sourceMessage = new AuthorizationRequest(1, "1", "g123456789r10");
 		String json = gson.toJson(sourceMessage);
 		response.setContentType("application/json");
 		response.getWriter().println(json);

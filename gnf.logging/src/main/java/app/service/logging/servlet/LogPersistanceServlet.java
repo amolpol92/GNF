@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import app.service.logging.CloudLogger;
 import app.service.logging.model.LogRequest;
 import app.service.logging.model.SourceLocationModel;
 import app.service.logging.utils.DatabasePersistOp;
@@ -67,6 +68,15 @@ public class LogPersistanceServlet extends HttpServlet {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		LogRequest logRequest = gson.fromJson(inputJson, LogRequest.class);
 
+		CloudLogger logger = CloudLogger.getLogger();
+		try {
+			logger.log(logRequest);
+		} catch (Exception e) {
+			resp.setStatus(400);
+			resp.getWriter().print("{\n  \"status\":\"" + e.getMessage() + "\"\n}");
+			return;
+		}
+		
 		// call the code here to enter into Database
 		new DatabasePersistOp(logRequest).persistIntoDatabase();
 	}

@@ -2,7 +2,9 @@ package app.service;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
@@ -13,12 +15,14 @@ import app.exception.UserNotAuthorizedException;
 import app.logging.CloudLogger;
 import app.model.AuthorizationRequest;
 import app.model.AuthorizationResponse;
+import app.model.DLPClientRequest;
 import app.model.InspectionResultWrapper;
 import app.model.PublisherMessage;
 import app.model.SourceMessage;
 import app.service.client.AuthServiceClient;
 import app.service.client.DLPServiceClient;
 import app.util.ExternalProperties;
+import app.util.ListUtils;
 
 /**
  * Responsible for Publishing messages for PubSub Layer 1 which contains three
@@ -54,12 +58,11 @@ public class NotifyService {
 	 * @param pubsubMessage
 	 * @return list of message ids
 	 */
-	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage,
+			Map<String, String> labels) {
 
-		LOGGER.info("Inside Notify Service. Publishing messages on these topics -> " + topics
-				+ ". com.google.pubsub.v1.PubsubMessage:\n" + pubsubMessage, pubsubMessage.getAttributesOrThrow("globalTransactionId"));
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
-		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage);
+		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage, labels);
 		return messageIds;
 	}
 
@@ -70,9 +73,9 @@ public class NotifyService {
 	 * @return list of inspection results
 	 * @throws IOException
 	 */
-	public InspectionResultWrapper getInspectionResult(String inputMessage) throws IOException {
+	public InspectionResultWrapper getInspectionResult(DLPClientRequest dlpRequest) throws IOException {
 		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for inspection.");
-		InspectionResultWrapper inspectionResult = dlpServiceClient.getInspectionResult(inputMessage);
+		InspectionResultWrapper inspectionResult = dlpServiceClient.getInspectionResult(dlpRequest);
 		LOGGER.info("Inside Notify Service. Received inspection result from DLP Service Invoker. \nInfotypes matched: "
 				+ inspectionResult.getInspectResults().size());
 		return inspectionResult;
@@ -85,10 +88,10 @@ public class NotifyService {
 	 * @return de-identified String
 	 * @throws IOException
 	 */
-	public String getDeidentifiedString(String inputMsg) throws IOException {
+	public String getDeidentifiedString(DLPClientRequest dlpRequest) throws IOException {
 		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for deidentification. "
-				+ "\nMessage: " + inputMsg);
-		String deidentifiedString = dlpServiceClient.getDeidentifiedString(inputMsg);
+				+ "\nMessage: " + dlpRequest);
+		String deidentifiedString = dlpServiceClient.getDeidentifiedString(dlpRequest);
 		LOGGER.info("Inside Notify Service. Received deidentified message from DLP Service Invoker \nMessage - "
 				+ deidentifiedString);
 		return deidentifiedString;
@@ -103,37 +106,46 @@ public class NotifyService {
 	 * @throws PANDataFoundSecurityViolationException
 	 * @throws UserNotAuthorizedException
 	 */
-	public List<PublisherMessage> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException, IOException,
-			PANDataFoundSecurityViolationException, UserNotAuthorizedException {
+	public List<PublisherMessage> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException,
+			IOException, PANDataFoundSecurityViolationException, UserNotAuthorizedException {
 		String message = sourceMessage.getMessage();
-		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.", sourceMessage.getGlobalTxnId());
+		String globalTxnId = sourceMessage.getGlobalTxnId();
+
+		Map<String, String> labels = new HashMap<>();
+		labels.put("Global Transaction Id", globalTxnId);
+		labels.put("Source Authorization Level", String.valueOf(sourceMessage.getSourceAuthLevel()));
+		labels.put("Target Group Id", String.valueOf(sourceMessage.getGroupId()));
+
+		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.",
+				labels);
 		// Application level Source authorization against Target Group
 		AuthServiceClient client = new AuthServiceClient();
 		String groupId = String.valueOf(sourceMessage.getGroupId());
+		int sourceAuthLevel = sourceMessage.getSourceAuthLevel();
 		AuthorizationResponse authResp = client
-				.authorize(new AuthorizationRequest(sourceMessage.getSourceAuthLevel(), groupId));
+				.authorize(new AuthorizationRequest(sourceAuthLevel, groupId, globalTxnId));
 
 		if (!authResp.isAuthorized())
 			throw new UserNotAuthorizedException(authResp.getReason());
 
+		DLPClientRequest dlpRequest = new DLPClientRequest(message, sourceAuthLevel, groupId, globalTxnId);
 		// Inspection & termination on violation
-		dlpServiceClient.checkForSensitiveData(message);
+		dlpServiceClient.checkForSensitiveData(dlpRequest);
 
 		// DeIdentification - Redact/Mask PIIs.
-		String deidentifiedStr = dlpServiceClient.getDeidentifiedString(message);
+		String deidentifiedStr = dlpServiceClient.getDeidentifiedString(dlpRequest);
 
-		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found."
-				, sourceMessage.getGlobalTxnId());
+		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found.", labels);
 
 		PubsubMessage pubsubMessage = SourceToPubSubMessageConverter.convert(sourceMessage, deidentifiedStr);
 
 		String topicNames = ExternalProperties.getAppConfig("app.gc.pubsub.topic.layer1");
 
-		LOGGER.info("Inside Notify Service. Need to publish message on " + topicNames
-				+ ". Delegating responsibility to NotifyServiceMessagePublisher.", sourceMessage.getGlobalTxnId());
-
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
-		List<PublisherMessage> messageIds = publisher.publishMessage(topicNames, pubsubMessage);
+
+		List<String> topics = ListUtils.getListFromCSV(topicNames);
+
+		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage, labels);
 		return messageIds;
 	}
 

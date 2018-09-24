@@ -18,7 +18,6 @@ import com.google.gson.GsonBuilder;
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
 import app.exception.UserNotAuthorizedException;
-import app.logging.CloudLogger;
 import app.model.NotifyResponse;
 import app.model.PublisherMessage;
 import app.model.SourceMessage;
@@ -32,7 +31,7 @@ import app.service.NotifyService;
 public class NotifyServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private static final CloudLogger LOGGER = CloudLogger.getLogger();
+	//private static final CloudLogger LOGGER = CloudLogger.getLogger();
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -95,10 +94,6 @@ public class NotifyServlet extends HttpServlet {
 		}
 
 		sourceMessage.setGlobalTxnId(gbTxnId);
-		LOGGER.info("Inside NotifyServlet. Added Global Txn Id to Source Message. \nGlobal Txn Id is \n"
-				+ sourceMessage.getGlobalTxnId() + ", Source Auth Level is " + sourceMessage.getSourceAuthLevel()
-				+ ", Target group id is " + sourceMessage.getGroupId());
-
 		return sourceMessage;
 	}
 }
