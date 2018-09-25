@@ -8,9 +8,12 @@ import java.util.Map;
 
 import com.google.pubsub.v1.PubsubMessage;
 
+import app.constants.Constants;
 import app.dao.PublisherDao;
 import app.logging.CloudLogger;
+import app.model.LogRequest;
 import app.model.PublisherMessage;
+import app.service.client.LogServiceClient;
 import app.util.DateUtility;
 
 /**
@@ -28,20 +31,27 @@ public class NotifyServiceMessagePublisher {
 	 * @param pubsubMessage
 	 * @return messageIdList
 	 */
-	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage,
-			Map<String, String> labels) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage, Map<String, String> labels) {
 
 		List<PublisherMessage> messageIds = new ArrayList<>();
 
 		topics.forEach(topic -> {
 
 			String messageId = "";
-			String globalTxnId = pubsubMessage.getAttributesOrThrow("globalTransactionId");
+			String globalTxnId = pubsubMessage.getAttributesOrThrow(Constants.GB_TXN_ID_KEY);
 			try {
 
-				LOGGER.info("Inside NotifyService. Publishing message on topic: " + topic, labels);
+				LOGGER.info("Inside NotifyService. Publishing message on topic: " + topic);
 				GenericMessagePublisher publisher = new GenericMessagePublisher();
-				messageId = publisher.publishMessage(topic, pubsubMessage);
+				
+				if(topic.equalsIgnoreCase("logMsg")) {
+					LogRequest logReq = new LogRequest("Published on topic logMsg from Notify Service", "INFO", "gae_app", "NotifyService");
+					logReq.setLabels(labels);
+					messageId = LogServiceClient.getLogger().log(logReq);
+				}else {
+					messageId = publisher.publishMessage(topic, pubsubMessage);
+				}
+				
 
 			} catch (Exception e1) {
 				e1.printStackTrace();

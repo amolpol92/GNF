@@ -2,13 +2,17 @@ package app.service.authorization;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
 
+import app.service.authorization.constants.Constants;
 import app.service.authorization.exception.ExternalUserNotAllowedException;
 import app.service.authorization.exception.InsufficientAuthorizationException;
 import app.service.authorization.exception.NoSuchGroupException;
 import app.service.authorization.model.AuthorizationRequest;
+import app.service.authorization.model.LogRequest;
 
 /**
  * Authorization Service is responsible for handling authorization for both
@@ -23,11 +27,8 @@ import app.service.authorization.model.AuthorizationRequest;
  *
  */
 public class AuthorizationService {
-
-	private LogServiceClient LOGGER = LogServiceClient.getLogger();
-
 	/**
-	 * @param sourceMessage
+	 * @param authorizationRequest
 	 * @return boolean
 	 * @throws SQLException
 	 * @throws ExternalUserNotAllowedException
@@ -37,12 +38,17 @@ public class AuthorizationService {
 	 * @throws ClientProtocolException
 	 * @throws MessageNotLoggedException
 	 */
-	public void checkSourceAuthorization(AuthorizationRequest sourceMessage)
+	public void checkSourceAuthorization(AuthorizationRequest authorizationRequest)
 			throws SQLException, ExternalUserNotAllowedException, NoSuchGroupException,
 			InsufficientAuthorizationException, ClientProtocolException, IOException {
-		checkForExternalUser(sourceMessage);
-		checkSourceToGroupAuthorization(sourceMessage);
-		LOGGER.info("Inside Authorization Service. Source has sufficient authorization.");
+		checkForExternalUser(authorizationRequest);
+		checkSourceToGroupAuthorization(authorizationRequest);
+
+		String message = "Source has sufficient authorization.";
+		LogRequest logRequest = new LogRequest(message, "INFO");
+		Map<String, String> labels = getLabels(authorizationRequest);
+		logRequest.setLabels(labels);
+		LogServiceClient.getLogger().log(logRequest);
 	}
 
 	/**
@@ -55,11 +61,18 @@ public class AuthorizationService {
 	 * @throws IOException
 	 * @throws ClientProtocolException
 	 */
-	private void checkForExternalUser(AuthorizationRequest srcMessage)
+	private void checkForExternalUser(AuthorizationRequest authorizationRequest)
 			throws ExternalUserNotAllowedException, ClientProtocolException, IOException {
-		if (srcMessage.getSourceAuthLevel() == 0) {
-			LOGGER.warning("Inside Authorization Service. "
-					+ "\nTerminating transaction. " + "Reason:- External User tried to send message.");
+		if (authorizationRequest.getSourceAuthLevel() == 0) {
+
+			String message = "Terminating transaction. Reason:- External User tried to send message.";
+
+			LogRequest logRequest = new LogRequest(message, "WARNING");
+
+			Map<String, String> labels = getLabels(authorizationRequest);
+			logRequest.setLabels(labels);
+			LogServiceClient.getLogger().log(logRequest);
+
 			throw new ExternalUserNotAllowedException();
 		}
 	}
@@ -68,7 +81,7 @@ public class AuthorizationService {
 	 * Source Authorization Level must be equal or greater than required
 	 * authorization level for targeting a group for messaging.
 	 * 
-	 * @param sourceMessage
+	 * @param authorizationRequest
 	 * @throws SQLException
 	 * @throws NoSuchGroupException
 	 * @throws InsufficientAuthorizationException
@@ -76,17 +89,32 @@ public class AuthorizationService {
 	 * @throws ClientProtocolException
 	 * @throws MessageNotLoggedException
 	 */
-	private void checkSourceToGroupAuthorization(AuthorizationRequest sourceMessage) throws SQLException, NoSuchGroupException,
-			InsufficientAuthorizationException, ClientProtocolException, IOException {
+	private void checkSourceToGroupAuthorization(AuthorizationRequest authorizationRequest) throws SQLException,
+			NoSuchGroupException, InsufficientAuthorizationException, ClientProtocolException, IOException {
 
 		UserServiceClient userService = new UserServiceClient();
-		int groupAuthLevel = userService.getGroupAuthLevel(String.valueOf(sourceMessage.getGroupId()));
+		int groupAuthLevel = userService.getGroupAuthLevel(authorizationRequest);
 
-		if (sourceMessage.getSourceAuthLevel() < groupAuthLevel) {
-			LOGGER.warning(
-					"Inside Authorization Service." + " Transaction terminated. Reason:- Insufficient authorization.");
+		if (authorizationRequest.getSourceAuthLevel() < groupAuthLevel) {
+			String message = "Transaction terminated. Reason:- Insufficient authorization.";
+			LogRequest logRequest = new LogRequest(message, "WARNING");
+
+			Map<String, String> labels = getLabels(authorizationRequest);
+
+			logRequest.setLabels(labels);
+
+			LogServiceClient.getLogger().log(logRequest);
 			throw new InsufficientAuthorizationException();
 		}
+	}
+
+	private Map<String, String> getLabels(AuthorizationRequest authorizationRequest) {
+		Map<String, String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, authorizationRequest.getGlobalTxnId());
+		String srcAuthLvlStr = String.valueOf(authorizationRequest.getSourceAuthLevel());
+		labels.put("Source Authorization Level", srcAuthLvlStr);
+		labels.put("Target Group Id", authorizationRequest.getGroupId());
+		return labels;
 	}
 
 }

@@ -20,6 +20,6 @@ public class Constants {
 	public static final String IN_PROGRESS = "In-progress";
 	public static final String DELIVERED = "Delivered";
 	
-	
+	public static final String GB_TXN_ID_KEY = "Global Transaction Id";
 
 }

@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.service.logging.CloudLogger;
+import app.service.logging.Constants;
 import app.service.logging.model.LogRequest;
 import app.service.logging.model.SourceLocationModel;
 
@@ -68,7 +69,7 @@ public class LoggingServlet extends HttpServlet {
 		logRequest.setSourceLocation(source);
 
 		Map<String, String> labelFromKey = new HashMap<>();
-		labelFromKey.put("GlobalTxnId", "gb12345rnd67");
+		labelFromKey.put(Constants.GB_TXN_ID_KEY, "gb12345rnd67");
 
 		logRequest.setLabels(labelFromKey);
 		logRequest.setSourceLocation(new SourceLocationModel("LoggingServlet.java", 20l,

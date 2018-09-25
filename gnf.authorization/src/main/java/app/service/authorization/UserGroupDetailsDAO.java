@@ -6,11 +6,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.client.ClientProtocolException;
 
+import app.service.authorization.constants.Constants;
 import app.service.authorization.exception.NoSuchGroupException;
+import app.service.authorization.model.AuthorizationRequest;
+import app.service.authorization.model.LogRequest;
 import app.service.authorization.model.UserGroupDetails;
 
 
@@ -19,8 +24,6 @@ import app.service.authorization.model.UserGroupDetails;
  *
  */
 public class UserGroupDetailsDAO {
-
-	private LogServiceClient LOGGER = LogServiceClient.getLogger();
 
 	private Connection connection;
 
@@ -46,11 +49,11 @@ public class UserGroupDetailsDAO {
 	 * @throws IOException 
 	 * @throws ClientProtocolException 
 	 */
-	public int getAuthLevel(int groupId) throws SQLException, NoSuchGroupException, ClientProtocolException, IOException {
+	public int getAuthLevel(AuthorizationRequest authorizationRequest) throws SQLException, NoSuchGroupException, ClientProtocolException, IOException {
 		String sql = "SELECT group_auth_level FROM user_group_details WHERE group_id = ?";
 
 		PreparedStatement ps = connection.prepareStatement(sql);
-		ps.setInt(1, groupId);
+		ps.setInt(1, Integer.parseInt(authorizationRequest.getGroupId()));
 
 		ResultSet rs = ps.executeQuery();
 		int grpAuthLevel = -1;
@@ -58,8 +61,15 @@ public class UserGroupDetailsDAO {
 		if (rs.next()) {
 			grpAuthLevel = rs.getInt("group_auth_level");
 		} else {
-			LOGGER.warning("Inside Authorization Service. Terminating transaction. "
-					+ "Reason:- Source trying to post on a group that doesn't exist in database.");
+			
+			String message = "Terminating transaction. Invalid Group Id";
+			
+			LogRequest logRequest = new LogRequest(message, "WARNING", "gae_app", "AuthorizationService");
+			Map<String, String> labels = getLabels(authorizationRequest);
+			logRequest.setLabels(labels);
+			
+			
+			LogServiceClient.getLogger().log(logRequest);
 			throw new NoSuchGroupException();
 		}
 		rs.close();
@@ -105,6 +115,15 @@ public class UserGroupDetailsDAO {
 		userGroupDetails.setGroupAuthLevel(rs.getInt("group_auth_level"));
 
 		return userGroupDetails;
+	}
+	
+	private Map<String, String> getLabels(AuthorizationRequest authorizationRequest) {
+		Map<String, String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, authorizationRequest.getGlobalTxnId());
+		String srcAuthLvlStr = String.valueOf(authorizationRequest.getSourceAuthLevel());
+		labels.put("Source Authorization Level", srcAuthLvlStr);
+		labels.put("Target Group Id", authorizationRequest.getGroupId());
+		return labels;
 	}
 
 }

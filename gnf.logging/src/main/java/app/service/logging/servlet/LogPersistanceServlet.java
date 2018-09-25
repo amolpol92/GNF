@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.service.logging.CloudLogger;
+import app.service.logging.Constants;
 import app.service.logging.model.LogRequest;
 import app.service.logging.model.SourceLocationModel;
 import app.service.logging.utils.DatabasePersistOp;
@@ -55,7 +56,7 @@ public class LogPersistanceServlet extends HttpServlet {
 		logRequest.setSourceLocation(source);
 
 		Map<String, String> labelFromKey = new HashMap<>();
-		labelFromKey.put("GlobalTxnId", "gb12345rnd67");
+		labelFromKey.put(Constants.GB_TXN_ID_KEY, "gb12345rnd67");
 
 		logRequest.setLabels(labelFromKey);
 		logRequest.setSourceLocation(new SourceLocationModel("LoggingServlet.java", 20l,
@@ -76,14 +77,16 @@ public class LogPersistanceServlet extends HttpServlet {
 		byte[] decodedMessageData = Base64.getMimeDecoder().decode(message.getData().getBytes());
 		String decodedMessage = new String(decodedMessageData);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		
+		
+		
 		LogRequest logRequest = gson.fromJson(decodedMessage, LogRequest.class);
 
 		CloudLogger logger = CloudLogger.getLogger();
 		try {
 			logger.log(logRequest);
 		} catch (Exception e) {
-			resp.setStatus(400);
-			resp.getWriter().print("{\n  \"status\":\"" + e.getMessage() + "\"\n}");
+			e.printStackTrace();
 			return;
 		}		
 		// call the code here to enter into Database

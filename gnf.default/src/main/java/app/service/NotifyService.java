@@ -9,6 +9,7 @@ import java.util.Map;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
+import app.constants.Constants;
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
 import app.exception.UserNotAuthorizedException;
@@ -112,7 +113,7 @@ public class NotifyService {
 		String globalTxnId = sourceMessage.getGlobalTxnId();
 
 		Map<String, String> labels = new HashMap<>();
-		labels.put("Global Transaction Id", globalTxnId);
+		labels.put(Constants.GB_TXN_ID_KEY, globalTxnId);
 		labels.put("Source Authorization Level", String.valueOf(sourceMessage.getSourceAuthLevel()));
 		labels.put("Target Group Id", String.valueOf(sourceMessage.getGroupId()));
 
@@ -169,7 +170,7 @@ public class NotifyService {
 			String groupIdStr = String.valueOf(sourceMessage.getGroupId());
 
 			PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data)
-					.putAttributes("globalTransactionId", sourceMessage.getGlobalTxnId())
+					.putAttributes(Constants.GB_TXN_ID_KEY, sourceMessage.getGlobalTxnId())
 					.putAttributes("srcAuthLevel", srcAuthLvlStr).putAttributes("destGroupId", groupIdStr).build();
 			return pubsubMessage;
 		}

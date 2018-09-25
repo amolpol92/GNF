@@ -36,7 +36,7 @@ public class MessageUtils {
 		PubsubMessage pubsubMsg = message.getMessage();
 		String msgId = pubsubMsg.getMessageId();
 		String data = pubsubMsg.getData().toStringUtf8();
-		String globaTxnId = pubsubMsg.getAttributesOrThrow("globalTransactionId");
+		String globaTxnId = pubsubMsg.getAttributesOrThrow(Constants.GB_TXN_ID_KEY);
 		Timestamp timestamp = pubsubMsg.getPublishTime();
 		long time = timestamp.getSeconds();
 
