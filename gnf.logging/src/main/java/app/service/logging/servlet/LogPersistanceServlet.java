@@ -2,15 +2,20 @@ package app.service.logging.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.api.client.json.JsonParser;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.pubsub.model.PubsubMessage;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -63,10 +68,15 @@ public class LogPersistanceServlet extends HttpServlet {
 	}
 
 	public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String inputJson = req.getReader().lines().collect(Collectors.joining());
-
+		resp.setStatus(HttpServletResponse.SC_OK);
+		ServletInputStream inputStream = req.getInputStream();
+		JsonParser parser = JacksonFactory.getDefaultInstance().createJsonParser(inputStream);
+		parser.skipToKey("message");	
+		PubsubMessage message = parser.parseAndClose(PubsubMessage.class);
+		byte[] decodedMessageData = Base64.getMimeDecoder().decode(message.getData().getBytes());
+		String decodedMessage = new String(decodedMessageData);
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		LogRequest logRequest = gson.fromJson(inputJson, LogRequest.class);
+		LogRequest logRequest = gson.fromJson(decodedMessage, LogRequest.class);
 
 		CloudLogger logger = CloudLogger.getLogger();
 		try {
@@ -75,9 +85,19 @@ public class LogPersistanceServlet extends HttpServlet {
 			resp.setStatus(400);
 			resp.getWriter().print("{\n  \"status\":\"" + e.getMessage() + "\"\n}");
 			return;
-		}
-		
+		}		
 		// call the code here to enter into Database
-		new DatabasePersistOp(logRequest).persistIntoDatabase();
+		persistInDb(logRequest);
+		
 	}
+	
+	public void persistInDb(LogRequest logRequest) {
+		try {
+			DatabasePersistOp dao=new DatabasePersistOp();
+			dao.persistIntoDatabase(logRequest);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
 }
