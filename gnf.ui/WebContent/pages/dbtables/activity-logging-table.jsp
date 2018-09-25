@@ -32,13 +32,12 @@
       <table id="logging-datatable" class="display">
         <thead>
           <tr>
-            <th>Id</th>
-            <th>Message Id</th>
-            <th>Message</th>
-            <th>Topic Name</th>
-            <th>Subscription Name</th>
-            <th>Published Time</th>
             <th>Global Txn Id</th>
+            <th>Severity</th>
+            <th>Logger Name</th>
+            <th>Monitored Resource</th>
+            <th>Id</th>
+            <th>Log Message</th>
           </tr>
         </thead>
       </table>
