@@ -44,6 +44,10 @@ public class CloudLogger {
 			throw e;
 		}
 	}
+	
+	public void log(String message) {
+		log(message, Severity.INFO, "gae_app", "LogService");
+	}
 
 	/**
 	 * @param message

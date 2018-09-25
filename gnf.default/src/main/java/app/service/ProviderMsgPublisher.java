@@ -8,6 +8,7 @@ import com.google.pubsub.v1.PubsubMessage;
 //import com.google.api.services.pubsub.model.PubsubMessage;
 import com.google.pubsub.v1.PubsubMessage.Builder;
 
+import app.constants.Constants;
 import app.dao.PublisherDao;
 import app.model.PublisherMessage;
 import app.model.UserMessageSO;
@@ -34,7 +35,7 @@ public class ProviderMsgPublisher {
 
 		ByteString data = ByteString.copyFromUtf8(publishMessage.getMessage());
 		Builder builder = PubsubMessage.newBuilder().setData(data);
-		builder.putAttributes("globalTransactionId", publishMessage.getGlobalTransactionId());
+		builder.putAttributes(Constants.GB_TXN_ID_KEY, publishMessage.getGlobalTransactionId());
 
 		if (null != publishMessage.getEmailId() && "" != publishMessage.getEmailId()) {
 

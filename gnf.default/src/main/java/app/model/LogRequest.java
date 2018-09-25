@@ -1,4 +1,4 @@
-package app.service.authorization.model;
+package app.model;
 
 import java.util.Map;
 
@@ -18,15 +18,9 @@ public class LogRequest {
 	public LogRequest() {
 	}
 
-	public LogRequest(String message, String severity) {
-		this.message = message;
-		this.severity = severity;
-		this.monitoredResource = "gae_app";
-		this.logName = "AuthorizationService";
-	}
-
-	public LogRequest(String message, String severity, String monitoredResource, String logName) {
-		this.message = message;
+	public LogRequest(String messsage, String severity, String monitoredResource, String logName) {
+		super();
+		this.message = messsage;
 		this.severity = severity;
 		this.monitoredResource = monitoredResource;
 		this.logName = logName;

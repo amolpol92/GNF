@@ -60,6 +60,16 @@ public class SyncPullClientServlet extends HttpServlet {
 
 	}
 
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		SyncPullClientRequest request = new SyncPullClientRequest(1, true);
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		String json = gson.toJson(request);
+		resp.getWriter().print(json);
+
+	}
+
 	private void prepareJsonResponse(HttpServletResponse response, List<SubscriberMessage> messageList)
 			throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();

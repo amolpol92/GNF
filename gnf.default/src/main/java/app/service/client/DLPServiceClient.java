@@ -38,7 +38,6 @@ public class DLPServiceClient {
 	 * @throws IOException
 	 */
 	public InspectionResultWrapper getInspectionResult(DLPClientRequest request) throws IOException {
-		LOGGER.info("Performing POST on " + ConstantsURL.DLP_INSPECT_URL);
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		HttpPost httppost = new HttpPost(ConstantsURL.DLP_INSPECT_URL);
 

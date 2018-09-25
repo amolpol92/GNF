@@ -13,6 +13,7 @@ import com.google.api.client.json.JsonParser;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.pubsub.model.PubsubMessage;
 
+import app.constants.Constants;
 import app.service.messagestatus.NotifyToMessageStatusService;
 
 /**
@@ -38,7 +39,7 @@ public class NotifyToMessageStatusServlet extends HttpServlet {
 		PubsubMessage message = parser.parseAndClose(PubsubMessage.class);
 		NotifyToMessageStatusService statusService = new NotifyToMessageStatusService();
 		try {
-			statusService.insertIntoTable(message.getAttributes().get("globalTransactionId"));
+			statusService.insertIntoTable(message.getAttributes().get(Constants.GB_TXN_ID_KEY));
 			resp.setStatus(HttpServletResponse.SC_OK);
 		} catch (SQLException e) {
 			e.printStackTrace();

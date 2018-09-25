@@ -18,6 +18,7 @@ import com.google.gson.GsonBuilder;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
+import app.constants.Constants;
 import app.model.PublishRequest;
 import app.model.PublishResponse;
 import app.model.PublisherMessage;
@@ -58,11 +59,11 @@ public class PublishServlet extends HttpServlet {
 
 		ByteString data = ByteString.copyFromUtf8(message);
 		PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data)
-				.putAttributes("globalTransactionId", gbTxnId).build();
+				.putAttributes(Constants.GB_TXN_ID_KEY, gbTxnId).build();
 		NotifyService notifyService = new NotifyService();
 
 		Map<String, String> labels = new HashMap<>();
-		labels.put("Global Transaction Id", gbTxnId);
+		labels.put(Constants.GB_TXN_ID_KEY, gbTxnId);
 
 		List<PublisherMessage> messageIds = notifyService.publishMessage(topics, pubsubMessage, labels);
 
