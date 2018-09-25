@@ -38,8 +38,8 @@ public class InspectServlet extends HttpServlet {
 
 		String inputJson = request.getReader().lines().collect(Collectors.joining());
 		Gson gson = new GsonBuilder().create();
-		DLPClientRequest messageWrapper = gson.fromJson(inputJson, DLPClientRequest.class);
-		String inputMessage = messageWrapper.getMessage();
+		DLPClientRequest dlpRequest = gson.fromJson(inputJson, DLPClientRequest.class);
+		String inputMessage = dlpRequest.getMessage();
 
 		if (inputMessage.isEmpty()) {
 			setResponseJson(response, new InspectionResultWrapper());
@@ -47,7 +47,7 @@ public class InspectServlet extends HttpServlet {
 		}
 
 		DLPService dlpService = new DLPService();
-		InspectionResultWrapper inspectionResult = dlpService.inspect(inputMessage);
+		InspectionResultWrapper inspectionResult = dlpService.inspect(dlpRequest);
 
 		if (inspectionResult.getInspectResults().isEmpty()) {
 			setResponseJson(response, new InspectionResultWrapper());

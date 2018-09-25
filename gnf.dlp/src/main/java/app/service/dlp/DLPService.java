@@ -2,11 +2,18 @@ package app.service.dlp;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import app.service.dlp.logger.CloudLogger;
+import org.apache.http.client.ClientProtocolException;
+
+import app.service.LogServiceClient;
+import app.service.dlp.constants.Constants;
+import app.service.dlp.model.DLPClientRequest;
 import app.service.dlp.model.InspectionEntry;
 import app.service.dlp.model.InspectionResultWrapper;
+import app.service.dlp.model.LogRequest;
 
 /**
  * Responsible for DLP Inspection, Risk analysis & Deidentification <br>
@@ -18,8 +25,6 @@ import app.service.dlp.model.InspectionResultWrapper;
  *
  */
 public class DLPService {
-
-	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	/**
 	 * @param inputMessage
@@ -37,24 +42,34 @@ public class DLPService {
 	 * @throws IOException
 	 * @throws PANDataFoundSecurityViolationException
 	 */
-	public InspectionResultWrapper inspect(String inputMessage) throws IOException {
+	public InspectionResultWrapper inspect(DLPClientRequest dlpRequest) throws IOException {
+		String inputMessage = dlpRequest.getMessage();
 		InspectionResultWrapper inspectionResults = getInspectionResult(inputMessage);
 
 		boolean hasSensitiveData = inspectionResults.getInspectResults().stream()
 				.anyMatch(result -> hasSensitiveData(result));
 
 		if (hasSensitiveData) {
-			LOGGER.warning(
-					"Inside DLP Service. PAN data present. ");
 			inspectionResults.setSensitiveDataFlag(true);
 		} else {
-			LOGGER.info(
-					"Inside DLP Service. Performed DLP Inspection on input message. Sensitive data not present. PIIs found? \n"
-							+ !inspectionResults.getInspectResults().isEmpty());
+
+			String message = "Performed DLP Inspection on input message. Sensitive data not present.";
+			logMessage(dlpRequest, message, "INFO");
 		}
 
 		return inspectionResults;
 
+	}
+
+	private void logMessage(DLPClientRequest dlpRequest, String message, String severity)
+			throws ClientProtocolException, IOException {
+		LogRequest logRequest = new LogRequest(message, severity);
+		Map<String, String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, dlpRequest.getGlobalTxnId());
+		labels.put("Source Authorization Level", String.valueOf(dlpRequest.getSourceAuth()));
+		labels.put("Target Group Id", dlpRequest.getGroupId());
+		logRequest.setLabels(labels);
+		LogServiceClient.getLogger().log(logRequest);
 	}
 
 	/**
