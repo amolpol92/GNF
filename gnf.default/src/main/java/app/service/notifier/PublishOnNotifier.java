@@ -2,12 +2,10 @@ package app.service.notifier;
 
 import java.util.List;
 
-import app.logging.CloudLogger;
 import app.model.UserMessageSO;
 import app.service.ProviderMsgPublisher;
 
 public class PublishOnNotifier {
-	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	/**
 	 * @param Prefered
@@ -19,7 +17,7 @@ public class PublishOnNotifier {
 				try {
 					publisher.publishMessage(publishMessage);
 				} catch (Exception e) {
-					LOGGER.error(e.getMessage());
+					e.printStackTrace();
 				}
 			});
 	}

@@ -1,5 +1,6 @@
 package app.service;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -10,7 +11,6 @@ import com.google.pubsub.v1.PubsubMessage;
 
 import app.constants.Constants;
 import app.dao.PublisherDao;
-import app.logging.CloudLogger;
 import app.model.LogRequest;
 import app.model.PublisherMessage;
 import app.service.client.LogServiceClient;
@@ -24,14 +24,13 @@ import app.util.DateUtility;
  */
 public class NotifyServiceMessagePublisher {
 
-	private CloudLogger LOGGER = CloudLogger.getLogger();
-
 	/**
 	 * @param topics
 	 * @param pubsubMessage
 	 * @return messageIdList
 	 */
-	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage, Map<String, String> labels) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage,
+			Map<String, String> labels) {
 
 		List<PublisherMessage> messageIds = new ArrayList<>();
 
@@ -41,17 +40,15 @@ public class NotifyServiceMessagePublisher {
 			String globalTxnId = pubsubMessage.getAttributesOrThrow(Constants.GB_TXN_ID_KEY);
 			try {
 
-				LOGGER.info("Inside NotifyService. Publishing message on topic: " + topic);
 				GenericMessagePublisher publisher = new GenericMessagePublisher();
-				
-				if(topic.equalsIgnoreCase("logMsg")) {
-					LogRequest logReq = new LogRequest("Published on topic logMsg from Notify Service", "INFO", "gae_app", "NotifyService");
-					logReq.setLabels(labels);
-					messageId = LogServiceClient.getLogger().log(logReq);
-				}else {
+
+				String logMessage = "Requested to Publish message on topic: " + topic;
+				if (topic.equalsIgnoreCase("logMsg")) {
+					messageId = logPublishRequest(logMessage, labels);
+				} else {
+					logPublishRequest(logMessage, labels);
 					messageId = publisher.publishMessage(topic, pubsubMessage);
 				}
-				
 
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -74,6 +71,12 @@ public class NotifyServiceMessagePublisher {
 
 		return messageIds;
 
+	}
+
+	private String logPublishRequest(String message, Map<String, String> labels) throws IOException {
+		LogRequest topicLogReq = new LogRequest(message, "INFO", "gae_app", "NotifyService");
+		topicLogReq.setLabels(labels);
+		return LogServiceClient.getLogger().log(topicLogReq);
 	}
 
 	/**

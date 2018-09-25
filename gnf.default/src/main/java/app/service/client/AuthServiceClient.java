@@ -15,12 +15,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.constants.ConstantsURL;
+import app.exception.UserNotAuthorizedException;
 import app.model.AuthorizationRequest;
 import app.model.AuthorizationResponse;
 
 public class AuthServiceClient {
 
-	public AuthorizationResponse authorize(AuthorizationRequest authRequest) throws ParseException, IOException {
+	public static void authorize(AuthorizationRequest authRequest)
+			throws ParseException, IOException, UserNotAuthorizedException {
 		HttpClient httpclient = HttpClientBuilder.create().build();
 		HttpPost httppost = new HttpPost(ConstantsURL.AUTHORIZE_URL);
 
@@ -33,13 +35,15 @@ public class AuthServiceClient {
 
 		HttpEntity httpEntity = response.getEntity();
 		if (httpEntity == null || httpEntity.getContent() == null) {
-			return new AuthorizationResponse();
+			return;
 		}
 
 		String jsonStr = EntityUtils.toString(httpEntity);
 		AuthorizationResponse results = gson.fromJson(jsonStr, AuthorizationResponse.class);
-		
-		return results;
+
+		if (!results.isAuthorized())
+			throw new UserNotAuthorizedException(results.getReason());
+
 	}
 
 }

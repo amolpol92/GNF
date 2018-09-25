@@ -1,4 +1,4 @@
-package app.model;
+package app.service.dlp.model;
 
 import java.util.Map;
 
@@ -18,15 +18,19 @@ public class LogRequest {
 	public LogRequest() {
 	}
 
-	public LogRequest(String messsage, String severity, String monitoredResource, String logName) {
-		super();
-		this.message = messsage;
+	public LogRequest(String message, String severity) {
+		this.message = message;
+		this.severity = severity;
+		this.monitoredResource = "gae_app";
+		this.logName = "DLPService";
+	}
+
+	public LogRequest(String message, String severity, String monitoredResource, String logName) {
+		this.message = message;
 		this.severity = severity;
 		this.monitoredResource = monitoredResource;
 		this.logName = logName;
 	}
-	
-	
 
 	public String getMessage() {
 		return message;

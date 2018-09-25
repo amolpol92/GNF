@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 import app.dao.UserDetailsDao;
 import app.dao.UserGroupDetailsDAO;
 import app.exception.NoSuchGroupException;
-import app.logging.CloudLogger;
 import app.model.MessageStatus;
 import app.model.SubscriberMessage;
 import app.model.UserDetailsSO;
@@ -24,7 +23,6 @@ import app.util.ExternalProperties;
  */
 public class UserService {
 
-	private static final CloudLogger LOGGER = CloudLogger.getLogger();
 
 	/**
 	 * this method being called after pulling messages from notify subscription
@@ -61,7 +59,6 @@ public class UserService {
 	 * 
 	 */
 	public void checkAllUserPreference(MessageStatus req) throws Exception {
-		LOGGER.info("Checking user preferences.");
 		List<UserDetailsSO> allUsers = null;
 		UserDetailsDao userDetailsDao = new UserDetailsDao();
 		if (null != req.getDestGroupId() && req.getDestGroupId() != "")
@@ -75,7 +72,6 @@ public class UserService {
 			utility.prepareMessagesWithPreferences(allUsers, req);
 		else {
 			String message = "Notification Preferences not set by any user";
-			LOGGER.info(message);
 			throw new Exception(message);
 		}
 

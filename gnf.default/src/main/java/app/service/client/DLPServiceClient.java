@@ -2,6 +2,8 @@ package app.service.client;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -14,11 +16,12 @@ import org.apache.http.util.EntityUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import app.constants.Constants;
 import app.constants.ConstantsURL;
 import app.exception.PANDataFoundSecurityViolationException;
-import app.logging.CloudLogger;
 import app.model.DLPClientRequest;
 import app.model.InspectionResultWrapper;
+import app.model.LogRequest;
 import app.model.MessageWrapper;
 
 /**
@@ -30,7 +33,6 @@ import app.model.MessageWrapper;
  */
 public class DLPServiceClient {
 
-	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	/**
 	 * @param inputMessage
@@ -94,11 +96,26 @@ public class DLPServiceClient {
 		InspectionResultWrapper inspectionResults = getInspectionResult(request);
 
 		if (inspectionResults.getSensitiveDataFlag()) {
-			LOGGER.info("Inside Notify Service. Terminating the transaction. Reason:- PAN data present. "
-					+ "Redacted Message:- " + getDeidentifiedString(request));
+			
+			String logMessage = "Terminating the transaction. Reason:- PAN data present. "
+					+ "Redacted Message:- " + getDeidentifiedString(request);
+			
+			LogRequest logRequest = new LogRequest(logMessage, "WARNING", "gae_app", "NotifyService");
+			logRequest.setLabels(getLabels(request));
+			LogServiceClient.getLogger().log(logRequest);
+			
 			throw new PANDataFoundSecurityViolationException();
 		}
 
+	}
+
+	private Map<String, String> getLabels(DLPClientRequest dlpRequest) {
+		Map<String, String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, dlpRequest.getGlobalTxnId());
+		String srcAuthLvlStr = String.valueOf(dlpRequest.getSourceAuth());
+		labels.put("Source Authorization Level", srcAuthLvlStr);
+		labels.put("Target Group Id", dlpRequest.getGroupId());
+		return labels;
 	}
 
 }

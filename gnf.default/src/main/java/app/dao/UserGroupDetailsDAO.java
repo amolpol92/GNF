@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app.exception.NoSuchGroupException;
-import app.logging.CloudLogger;
 import app.model.UserGroupDetails;
 
 /**
@@ -17,7 +16,6 @@ import app.model.UserGroupDetails;
  */
 public class UserGroupDetailsDAO {
 
-	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	private Connection connection;
 
@@ -52,8 +50,6 @@ public class UserGroupDetailsDAO {
 		if (rs.next()) {
 			grpAuthLevel = rs.getInt("group_auth_level");
 		} else {
-			LOGGER.warning("Inside Authorization Service . Terminating transaction. "
-					+ "Reason:- Source trying to post on a group that doesn't exist in database.");
 			throw new NoSuchGroupException();
 		}
 		rs.close();

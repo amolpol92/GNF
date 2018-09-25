@@ -1,6 +1,8 @@
-package app.service.client;
+package app.service;
 
 import java.io.IOException;
+
+import org.apache.http.client.ClientProtocolException;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -8,7 +10,6 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
 import app.model.LogRequest;
-import app.service.GenericMessagePublisher;
 
 /**
  * @author AdarshSinghal
@@ -24,7 +25,7 @@ public class LogServiceClient {
 		return logServiceClient;
 	}
 
-	public String log(LogRequest logRequest) throws IOException {
+	public String log(LogRequest logRequest) throws ClientProtocolException, IOException {
 
 		Gson gson = new GsonBuilder().create();
 		String json = gson.toJson(logRequest);

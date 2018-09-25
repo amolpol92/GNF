@@ -3,7 +3,6 @@ package app.service.notifier;
 import java.util.ArrayList;
 import java.util.List;
 
-import app.logging.CloudLogger;
 import app.model.MessageStatus;
 import app.model.UserDetailsSO;
 import app.model.UserMessageSO;
@@ -16,7 +15,6 @@ import app.model.UserMessageSO;
  */
 public class BindUserMessageDetails {
 
-	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	private static final String YES = "Yes";
 
@@ -31,7 +29,6 @@ public class BindUserMessageDetails {
 	 * @return boolean
 	 */
 	public void prepareMessagesWithPreferences(List<UserDetailsSO> receiverUserList, MessageStatus req) {
-		LOGGER.info("Preparing messages with preferences.");
 		NotifierFactory factory = new NotifierFactory();
 		List<UserMessageSO> emailPrefered = new ArrayList<>();
 		List<UserMessageSO> smsPrefered = new ArrayList<>();
@@ -48,7 +45,6 @@ public class BindUserMessageDetails {
 			}
 		}
 
-		LOGGER.info("Publishing on Notifier specific topics. Topics -> " + "SendGridEmail,TwilioSMS");
 
 		// message with user preferences will be published on respective topic
 		PublishOnNotifier publish=new PublishOnNotifier();

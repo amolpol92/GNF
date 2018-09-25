@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.client.ClientProtocolException;
+
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 
@@ -13,11 +15,10 @@ import app.constants.Constants;
 import app.exception.NoSuchGroupException;
 import app.exception.PANDataFoundSecurityViolationException;
 import app.exception.UserNotAuthorizedException;
-import app.logging.CloudLogger;
 import app.model.AuthorizationRequest;
-import app.model.AuthorizationResponse;
 import app.model.DLPClientRequest;
 import app.model.InspectionResultWrapper;
+import app.model.LogRequest;
 import app.model.PublisherMessage;
 import app.model.SourceMessage;
 import app.service.client.AuthServiceClient;
@@ -40,8 +41,6 @@ import app.util.ListUtils;
  *
  */
 public class NotifyService {
-
-	private CloudLogger LOGGER = CloudLogger.getLogger();
 
 	// TODO Remove dependencies from here. Use HTTPClient API to hit POST URL. Check
 	// similar implementation for reference at
@@ -75,10 +74,7 @@ public class NotifyService {
 	 * @throws IOException
 	 */
 	public InspectionResultWrapper getInspectionResult(DLPClientRequest dlpRequest) throws IOException {
-		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for inspection.");
 		InspectionResultWrapper inspectionResult = dlpServiceClient.getInspectionResult(dlpRequest);
-		LOGGER.info("Inside Notify Service. Received inspection result from DLP Service Invoker. \nInfotypes matched: "
-				+ inspectionResult.getInspectResults().size());
 		return inspectionResult;
 	}
 
@@ -90,11 +86,7 @@ public class NotifyService {
 	 * @throws IOException
 	 */
 	public String getDeidentifiedString(DLPClientRequest dlpRequest) throws IOException {
-		LOGGER.info("Inside Notify Service. Passing message to DLP Service Invoker for deidentification. "
-				+ "\nMessage: " + dlpRequest);
 		String deidentifiedString = dlpServiceClient.getDeidentifiedString(dlpRequest);
-		LOGGER.info("Inside Notify Service. Received deidentified message from DLP Service Invoker \nMessage - "
-				+ deidentifiedString);
 		return deidentifiedString;
 	}
 
@@ -109,34 +101,22 @@ public class NotifyService {
 	 */
 	public List<PublisherMessage> notify(SourceMessage sourceMessage) throws SQLException, NoSuchGroupException,
 			IOException, PANDataFoundSecurityViolationException, UserNotAuthorizedException {
-		String message = sourceMessage.getMessage();
+
 		String globalTxnId = sourceMessage.getGlobalTxnId();
-
-		Map<String, String> labels = new HashMap<>();
-		labels.put(Constants.GB_TXN_ID_KEY, globalTxnId);
-		labels.put("Source Authorization Level", String.valueOf(sourceMessage.getSourceAuthLevel()));
-		labels.put("Target Group Id", String.valueOf(sourceMessage.getGroupId()));
-
-		LOGGER.info("Inside Notify Service. " + "Passing source message to Authorization Service for authorization.",
-				labels);
-		// Application level Source authorization against Target Group
-		AuthServiceClient client = new AuthServiceClient();
 		String groupId = String.valueOf(sourceMessage.getGroupId());
 		int sourceAuthLevel = sourceMessage.getSourceAuthLevel();
-		AuthorizationResponse authResp = client
-				.authorize(new AuthorizationRequest(sourceAuthLevel, groupId, globalTxnId));
 
-		if (!authResp.isAuthorized())
-			throw new UserNotAuthorizedException(authResp.getReason());
+		logMessage(sourceMessage, "Passing source message to Authorization Service", "INFO");
+		AuthorizationRequest authorizeRequest = new AuthorizationRequest(sourceAuthLevel, groupId, globalTxnId);
+		AuthServiceClient.authorize(authorizeRequest);
 
-		DLPClientRequest dlpRequest = new DLPClientRequest(message, sourceAuthLevel, groupId, globalTxnId);
+		DLPClientRequest dlpRequest = new DLPClientRequest(sourceMessage.getMessage(), sourceAuthLevel, groupId,
+				globalTxnId);
 		// Inspection & termination on violation
 		dlpServiceClient.checkForSensitiveData(dlpRequest);
 
 		// DeIdentification - Redact/Mask PIIs.
 		String deidentifiedStr = dlpServiceClient.getDeidentifiedString(dlpRequest);
-
-		LOGGER.info("Inside Notify Service. Received Inspection results. PAN not found.", labels);
 
 		PubsubMessage pubsubMessage = SourceToPubSubMessageConverter.convert(sourceMessage, deidentifiedStr);
 
@@ -146,8 +126,24 @@ public class NotifyService {
 
 		List<String> topics = ListUtils.getListFromCSV(topicNames);
 
+		Map<String, String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, globalTxnId);
+		labels.put("Source Authorization Level", String.valueOf(sourceMessage.getSourceAuthLevel()));
+		labels.put("Target Group Id", String.valueOf(sourceMessage.getGroupId()));
 		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage, labels);
+
 		return messageIds;
+	}
+
+	private void logMessage(SourceMessage dlpRequest, String message, String severity)
+			throws ClientProtocolException, IOException {
+		LogRequest logRequest = new LogRequest(message, severity, "gae_app", "NotifyService");
+		Map<String, String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, dlpRequest.getGlobalTxnId());
+		labels.put("Source Authorization Level", String.valueOf(dlpRequest.getSourceAuthLevel()));
+		labels.put("Target Group Id", String.valueOf(dlpRequest.getGroupId()));
+		logRequest.setLabels(labels);
+		LogServiceClient.getLogger().log(logRequest);
 	}
 
 	/**
