@@ -20,7 +20,9 @@ public class DatabasePersistOp {
 		String sqlQueryString = "insert into log_details (glo_tran_id, severity, mntrd_res_typ, log_msg, log_name) VALUES (?, ?, ?, ?, ?)";
 		try(PreparedStatement statement = connection.prepareStatement(sqlQueryString)) {
 			
-			statement.setString(1, logRequest.getLabels().get(Constants.GB_TXN_ID_KEY));
+			String gbTxnId = logRequest.getLabels().get(Constants.GB_TXN_ID_KEY);
+			gbTxnId = gbTxnId==null?"NA":gbTxnId;
+			statement.setString(1, gbTxnId);
 			statement.setString(2, logRequest.getSeverity());
 			statement.setString(3, logRequest.getMonitoredResource());
 			statement.setString(4, logRequest.getMessage());

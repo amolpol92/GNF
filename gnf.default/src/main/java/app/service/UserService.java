@@ -40,6 +40,7 @@ public class UserService {
 		for (SubscriberMessage subMessage : messageList) {
 			HttpClientRequestHandler httpClient = new HttpClientRequestHandler();
 			MessageStatus requestObject = new MessageStatus();
+			requestObject.setGlobalTxnId(subMessage.getGlobalTransactionId());
 			requestObject.setMessageId(subMessage.getGlobalTransactionId());
 			requestObject.setMessageData(subMessage.getMessage());
 			if (null != subMessage.getDestGroupId() && subMessage.getDestGroupId() != "")

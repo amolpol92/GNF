@@ -1,11 +1,17 @@
 package app.service.notifier;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import app.constants.Constants;
+import app.model.LogRequest;
 import app.model.MessageStatus;
 import app.model.UserDetailsSO;
 import app.model.UserMessageSO;
+import app.service.client.LogServiceClient;
 
 /**
  * @author AmolPol
@@ -27,12 +33,19 @@ public class BindUserMessageDetails {
 	 * @param allUsers
 	 * @param req
 	 * @return boolean
+	 * @throws IOException 
 	 */
-	public void prepareMessagesWithPreferences(List<UserDetailsSO> receiverUserList, MessageStatus req) {
+	public void prepareMessagesWithPreferences(List<UserDetailsSO> receiverUserList, MessageStatus req) throws IOException {
 		NotifierFactory factory = new NotifierFactory();
 		List<UserMessageSO> emailPrefered = new ArrayList<>();
 		List<UserMessageSO> smsPrefered = new ArrayList<>();
 
+		Map<String,String> labels = new HashMap<>();
+		labels.put(Constants.GB_TXN_ID_KEY, req.getGlobalTxnId());
+		LogRequest logRequest = new LogRequest("Preparing to send messages based on preference.", "INFO", "gae_app", "UserService");
+		logRequest.setLabels(labels);
+		LogServiceClient.getLogger().log(logRequest);
+		
 		for (UserDetailsSO userDet : receiverUserList) {
 
 			if (userDet.getEmailFlag().equalsIgnoreCase(YES)) {

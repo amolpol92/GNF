@@ -47,7 +47,7 @@ public class LoggingDataDao {
 
 		LoggingDataModel logDataModel = new LoggingDataModel();
 		logDataModel.setInsertId(insertId);
-		logDataModel.setGlobalTxnId(globalTxnId);
+		logDataModel.setGlobalTxnId(globalTxnId==null?"NA":globalTxnId);
 		logDataModel.setMessage(message);
 		logDataModel.setMonitoredResource(monitoredResource);
 		logDataModel.setSeverity(severity);
