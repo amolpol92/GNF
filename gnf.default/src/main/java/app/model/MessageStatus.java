@@ -1,9 +1,8 @@
 package app.model;
 
 /**
- * @author AmolPol
- * @Description; to be used by the User Service
- * contains the information regarding the message content
+ * @author AmolPol @Description; to be used by the User Service contains the
+ *         information regarding the message content
  *
  */
 public class MessageStatus {
@@ -14,9 +13,8 @@ public class MessageStatus {
 	private String destGroupId;
 	private String emailNotifierType;
 	private String smsNotifeirType;
-	
-	
-	
+	private String globalTxnId;
+
 	public String getEmailNotifierType() {
 		return emailNotifierType;
 	}
@@ -65,10 +63,19 @@ public class MessageStatus {
 		this.messageId = messageId;
 	}
 
+	public String getGlobalTxnId() {
+		return globalTxnId;
+	}
+
+	public void setGlobalTxnId(String globalTxnId) {
+		this.globalTxnId = globalTxnId;
+	}
+
 	@Override
 	public String toString() {
-		return "RequestMapper [messageData=" + messageData + ", messageId=" + messageId + ", deliveryFlag="
-				+ deliveryFlag + "]";
+		return "MessageStatus [messageData=" + messageData + ", messageId=" + messageId + ", deliveryFlag="
+				+ deliveryFlag + ", destGroupId=" + destGroupId + ", emailNotifierType=" + emailNotifierType
+				+ ", smsNotifeirType=" + smsNotifeirType + ", globalTxnId=" + globalTxnId + "]";
 	}
 
 }
