@@ -16,7 +16,6 @@ import com.google.api.services.pubsub.model.PubsubMessage;
 import app.constants.Constants;
 import app.dao.MessageStatusListenerDao;
 import app.model.MessageStatusListenerSO;
-import app.service.messagestatus.NotifyToMessageStatusService;
 
 /**
  * @author Aniruddha,amol
@@ -39,7 +38,8 @@ public class NotifyToMessageStatusServlet extends HttpServlet {
 		JsonParser parser = JacksonFactory.getDefaultInstance().createJsonParser(inputStream);
 		parser.skipToKey("message");
 		PubsubMessage message = parser.parseAndClose(PubsubMessage.class);
-		//NotifyToMessageStatusService statusService = new NotifyToMessageStatusService();
+		// NotifyToMessageStatusService statusService = new
+		// NotifyToMessageStatusService();
 		persistInDb(resp, message);
 	}
 

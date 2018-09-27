@@ -20,7 +20,12 @@ public class DatabasePersistOp {
 		String sqlQueryString = "insert into log_details (glo_tran_id, severity, mntrd_res_typ, log_msg, log_name) VALUES (?, ?, ?, ?, ?)";
 		try(PreparedStatement statement = connection.prepareStatement(sqlQueryString)) {
 			
-			String gbTxnId = logRequest.getLabels().get(Constants.GB_TXN_ID_KEY);
+			String gbTxnId=null;
+			if(logRequest.getLabels()!=null && !logRequest.getLabels().isEmpty()) {
+				gbTxnId = logRequest.getLabels().get(Constants.GB_TXN_ID_KEY);
+			}
+			
+			
 			gbTxnId = gbTxnId==null?"NA":gbTxnId;
 			statement.setString(1, gbTxnId);
 			statement.setString(2, logRequest.getSeverity());
@@ -29,7 +34,6 @@ public class DatabasePersistOp {
 			statement.setString(5, logRequest.getLogName());
 			statement.execute();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

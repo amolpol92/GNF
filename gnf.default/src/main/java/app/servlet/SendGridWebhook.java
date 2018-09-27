@@ -17,7 +17,6 @@ import com.google.gson.reflect.TypeToken;
 import app.dao.MessageStatusListenerDao;
 import app.model.DeliveryStatus;
 import app.model.MessageStatusListenerSO;
-import app.service.ProviderMsgPublisher;
 import app.service.RetryMsgPublisher;
 
 /**
@@ -50,18 +49,21 @@ public class SendGridWebhook extends HttpServlet {
 	public void checkStatusAndPersistInDb(DeliveryStatus message) {
 		MessageStatusListenerDao dao;
 		String globalTxnId = null;
-		String sendgridMessageId = null;
+		String sendgridMessageId = message.getSg_message_id();
 		try {
-			/*
-			 * EmailNotifeirStatusLogDAO dao; dao = new
-			 * EmailNotifeirStatusLogDAO(); dao.insertWebhookDetails(message);
-			 */
-			sendgridMessageId = message.getSg_message_id().split(".")[0];
+
+			if (sendgridMessageId != null && sendgridMessageId.contains(".")) {
+				String[] splittedMsgId = sendgridMessageId.split("\\.");
+				if (splittedMsgId.length > 0)
+					sendgridMessageId = splittedMsgId[0];
+			}
+
+
+
 			dao = new MessageStatusListenerDao();
 			globalTxnId = dao.getGlobalTranId(sendgridMessageId);
 
-			MessageStatusListenerSO listenerSO = prepareStatusListenerMessage(message, sendgridMessageId,
-					globalTxnId);
+			MessageStatusListenerSO listenerSO = prepareStatusListenerMessage(message, sendgridMessageId, globalTxnId);
 
 			dao.statusListener(listenerSO);
 
@@ -103,7 +105,7 @@ public class SendGridWebhook extends HttpServlet {
 			try {
 				dao = new MessageStatusListenerDao();
 				dao.updateRetryCounter(globl_tran_id);
-				MessageStatusListenerSO messageCacheDetails=dao.getMessageDetailsFromStore(globl_tran_id);
+				MessageStatusListenerSO messageCacheDetails = dao.getMessageDetailsFromStore(globl_tran_id);
 
 				RetryMsgPublisher publisher = new RetryMsgPublisher();
 				publisher.publishMessageOnFailure(messageCacheDetails);
@@ -147,5 +149,4 @@ public class SendGridWebhook extends HttpServlet {
 		}
 		return inputData.toString();
 	}
-
 }

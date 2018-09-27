@@ -1,16 +1,12 @@
 package app.service.thirdparty;
 
 import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Date;
-import java.util.List;
 
 import com.google.api.services.pubsub.model.PubsubMessage;
 
+import app.constants.Constants;
 import app.model.DeliveryStatus;
-import app.model.MessageStatus;
 import app.model.MessageStatusListenerSO;
 import app.servlet.HttpClientRequestHandler;
 import app.util.ExternalProperties;
@@ -87,7 +83,7 @@ public class SendGridEmailNotifier {
 	private MessageStatusListenerSO statusUpdateRequest(PubsubMessage message,String ack) {
 		MessageStatusListenerSO listenerSO = new MessageStatusListenerSO();
 		
-		listenerSO.setGlobal_txn_id(message.getAttributes().get("globalTransactionId"));
+		listenerSO.setGlobal_txn_id(message.getAttributes().get(Constants.GB_TXN_ID_KEY));
 		listenerSO.setProvider_msg_id(ack);
 		listenerSO.setProvider_id("SendGrid");
 		listenerSO.setStatus("ReceivedBySendGrid");

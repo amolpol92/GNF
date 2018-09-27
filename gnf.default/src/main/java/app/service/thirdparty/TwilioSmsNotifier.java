@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.google.api.services.pubsub.model.PubsubMessage;
 
-import app.model.MessageStatus;
+import app.constants.Constants;
 import app.model.MessageStatusListenerSO;
 import app.servlet.HttpClientRequestHandler;
 import app.util.ExternalProperties;
@@ -32,7 +32,7 @@ public class TwilioSmsNotifier {
 
 		if (null != ack && ack != "" && !ack.equalsIgnoreCase("failed")) {
 			MessageStatusListenerSO listenerSO= statusUpdateRequest(message,ack);
-			// TODO need access twilio api for actual delivery status
+			
 			updateDelConfirmation(listenerSO);
 		} else if (ack.equalsIgnoreCase("failed")) {
 			retryCount--;
@@ -53,7 +53,7 @@ public class TwilioSmsNotifier {
 	private MessageStatusListenerSO statusUpdateRequest(PubsubMessage message , String ack) {
 		MessageStatusListenerSO listenerSO = new MessageStatusListenerSO();
 		
-		listenerSO.setGlobal_txn_id(message.getAttributes().get("globalTransactionId"));
+		listenerSO.setGlobal_txn_id(message.getAttributes().get(Constants.GB_TXN_ID_KEY));
 		listenerSO.setProvider_msg_id(ack);
 		listenerSO.setProvider_id("Twilio");
 		listenerSO.setStatus("ReceivedByTwilio");

@@ -11,9 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 
-import app.dao.MessageStatusDAO;
 import app.dao.MessageStatusListenerDao;
-import app.model.MessageStatus;
 import app.model.MessageStatusListenerSO;
 
 /**
@@ -42,7 +40,7 @@ public class UpdateMsgeDbWithNotifierAck extends HttpServlet {
 		Gson gson = new Gson();
 		MessageStatusListenerSO listenerSO = gson.fromJson(req.getReader(), MessageStatusListenerSO.class);
 		try {
-			MessageStatusListenerDao dao=new MessageStatusListenerDao();
+			MessageStatusListenerDao dao = new MessageStatusListenerDao();
 			dao.statusListener(listenerSO);
 			resp.setStatus(HttpServletResponse.SC_OK);
 		} catch (SQLException | ClassNotFoundException e) {

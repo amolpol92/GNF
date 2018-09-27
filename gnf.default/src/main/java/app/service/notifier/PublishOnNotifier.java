@@ -33,7 +33,7 @@ public class PublishOnNotifier {
 		MessageStatusListenerSO listenerSO = new MessageStatusListenerSO();
 
 		listenerSO.setGlobal_txn_id(userMessageSO.getGlobalTransactionId());
-
+		listenerSO.setMessage_data(userMessageSO.getMessage());
 		listenerSO.setProvider_id(userMessageSO.getTopicName());
 
 		listenerSO.setTimestamp(userMessageSO.getPublishTime());

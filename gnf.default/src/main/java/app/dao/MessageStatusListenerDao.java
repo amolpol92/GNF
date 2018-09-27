@@ -5,11 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.util.Date;
 
 import app.model.MessageStatusListenerSO;
-import app.util.DateUtility;
 
 public class MessageStatusListenerDao {
 
@@ -24,23 +22,15 @@ public class MessageStatusListenerDao {
 		String sql = "INSERT INTO message_status_db "
 				+ "(global_txn_id,provider_msg_id,status,timestamp,receiver_id,attempt,provider_id,source_id,comments,target_id)"
 				+ "VALUES (?,?,?,?,?,?,?,?,?,?)";
-		Timestamp ts = null;
+	
 		Timestamp currentTimestamp = new Timestamp(new Date().getTime());
-		try {
-			ts = DateUtility.getTimestamp(messageDetails.getTimestamp()) != null
-					? DateUtility.getTimestamp(messageDetails.getTimestamp())
-					: currentTimestamp;
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+	
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
 			ps.setString(1, messageDetails.getGlobal_txn_id());
 			ps.setString(2, messageDetails.getProvider_msg_id());
 			ps.setString(3, messageDetails.getStatus());
-			ps.setTimestamp(4, ts);
+			ps.setTimestamp(4, currentTimestamp);
 			ps.setString(5, messageDetails.getReceiver_id());
 			ps.setString(6, messageDetails.getAttempt());
 			ps.setString(7, messageDetails.getProvider_id());
@@ -53,7 +43,7 @@ public class MessageStatusListenerDao {
 	}
 
 	public String getGlobalTranId(String providerMessageId) throws SQLException {
-		String sql = "select global_txn_id from message_status_cache_db where provider_msg_id =?";
+		String sql = "select global_txn_id from message_status_db where provider_msg_id =?";
 		String global_txn_id = null;
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
@@ -109,26 +99,23 @@ public class MessageStatusListenerDao {
 
 	public void statusCacheListener(MessageStatusListenerSO messageDetails) throws SQLException {
 		String sql = "INSERT INTO message_cache "
-				+ "(global_txn_id,message_data,store_timestamp,receiver_id,provider_id,target_id,retry_counter)"
+				+ "(global_txn_id,message_data,store_timestamp,source_id,provider_id,target_id,retry_counter)"
 				+ "VALUES (?,?,?,?,?,?,?)";
-		Timestamp ts = null;
 		Timestamp currentTimestamp = new Timestamp(new Date().getTime());
-		try {
-			Timestamp timestamp = DateUtility.getTimestamp(messageDetails.getTimestamp());
-			ts = timestamp != null
-					? timestamp
-					: currentTimestamp;
-		} catch (ParseException e) {
-			
-			e.printStackTrace();
-		}
+		/*
+		 * try { Timestamp timestamp =
+		 * DateUtility.getTimestamp(messageDetails.getTimestamp()); ts = timestamp !=
+		 * null ? timestamp : currentTimestamp; } catch (ParseException e) {
+		 * 
+		 * e.printStackTrace(); }
+		 */
 
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
 			ps.setString(1, messageDetails.getGlobal_txn_id());
 			ps.setString(2, messageDetails.getMessage_data());
-			ps.setTimestamp(3, ts);
-			ps.setString(4, messageDetails.getReceiver_id());
+			ps.setTimestamp(3, currentTimestamp);
+			ps.setString(4, messageDetails.getSource_id());
 			ps.setString(5, messageDetails.getProvider_id());
 			ps.setString(6, messageDetails.getTarget_id());
 			ps.setInt(7, Integer.valueOf(messageDetails.getRetry_counter()));
