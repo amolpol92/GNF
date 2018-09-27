@@ -3,9 +3,9 @@ package app.service.authorization;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import org.apache.http.HttpEntity;
+/*import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
+
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -16,11 +16,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import app.service.authorization.constants.ConstantsURL;
+
+import app.service.authorization.model.GroupAuthResponse;
+import app.service.authorization.model.GroupDetailsRequest;*/
+
+import org.apache.http.client.ClientProtocolException;
 import app.service.authorization.exception.NoSuchGroupException;
 import app.service.authorization.model.AuthorizationRequest;
-import app.service.authorization.model.GroupAuthResponse;
-import app.service.authorization.model.GroupDetailsRequest;
-
 /**
  * @author AdarshSinghal
  *

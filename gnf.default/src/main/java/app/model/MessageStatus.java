@@ -14,6 +14,27 @@ public class MessageStatus {
 	private String emailNotifierType;
 	private String smsNotifeirType;
 	private String globalTxnId;
+	private int retryCounter;
+	private boolean retryMessageFlag;
+
+	
+	
+
+	public int getRetryCounter() {
+		return retryCounter;
+	}
+
+	public void setRetryCounter(int retryCounter) {
+		this.retryCounter = retryCounter;
+	}
+
+	public boolean isRetryMessageFlag() {
+		return retryMessageFlag;
+	}
+
+	public void setRetryMessageFlag(boolean retryMessageFlag) {
+		this.retryMessageFlag = retryMessageFlag;
+	}
 
 	public String getEmailNotifierType() {
 		return emailNotifierType;

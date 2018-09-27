@@ -25,8 +25,10 @@ public class EmailNotifeirService extends Notifier {
 		emailPrefUser.setMessage(req.getMessageData());
 		emailPrefUser.setUserId(userDet.getUserId());
 		emailPrefUser.setGlobalTransactionId(req.getMessageId());
-		emailPrefUser.setTopicName(null!=req.getEmailNotifierType()?"SendGridEmail":"SendGridEmail");
+		emailPrefUser.setTopicName(null!=req.getEmailNotifierType()?req.getEmailNotifierType():"SendGridEmail");
 		emailPrefUser.setEmailId(userDet.getEmailId());
+		emailPrefUser.setRetryMessageFlag(req.isRetryMessageFlag());
+		emailPrefUser.setRetryCounter(req.getRetryCounter());
 		return emailPrefUser;
 	}
 

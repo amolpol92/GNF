@@ -32,9 +32,6 @@ public class UserServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		response.setContentType("text/plain");
-		response.setCharacterEncoding("UTF-8");
-
 		
 		Reader reader = request.getReader();
 		Gson gson = new Gson();

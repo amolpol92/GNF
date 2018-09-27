@@ -52,7 +52,9 @@ public class MessageUtils {
 		subMsg.setSubscriptionId(subscriptionId);
 		subMsg.setPullTime(pullTime);
 
-		subMsg.setDestGroupId(pubsubMsg.getAttributesOrDefault("destGroupId",null));
+		subMsg.setDestGroupId(pubsubMsg.getAttributesOrDefault(Constants.TARGET_GROUP_ID,null));
+		subMsg.setRetryMessageFlag(pubsubMsg.getAttributesOrDefault(Constants.RETRY_FLAG, "false"));
+		subMsg.setRetryCounter(pubsubMsg.getAttributesOrDefault(Constants.RETRY_COUNTER, "0"));
 		return subMsg;
 	}
 

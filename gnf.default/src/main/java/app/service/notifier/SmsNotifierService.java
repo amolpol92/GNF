@@ -23,8 +23,10 @@ public class SmsNotifierService extends Notifier {
 		smsPrefUser.setMessage(req.getMessageData());
 		smsPrefUser.setUserId(userDet.getUserId());
 		smsPrefUser.setGlobalTransactionId(req.getMessageId());
-		smsPrefUser.setTopicName(null != req.getSmsNotifeirType() ? "TwilioSMS" : "TwilioSMS");
+		smsPrefUser.setTopicName(null != req.getSmsNotifeirType() ? req.getSmsNotifeirType() : "TwilioSMS");
 		smsPrefUser.setMobileNumber(userDet.getMobileNumber());
+		smsPrefUser.setRetryMessageFlag(req.isRetryMessageFlag());
+		smsPrefUser.setRetryCounter(req.getRetryCounter());
 		return smsPrefUser;
 	}
 }

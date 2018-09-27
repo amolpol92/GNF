@@ -21,5 +21,9 @@ public class Constants {
 	public static final String DELIVERED = "Delivered";
 	
 	public static final String GB_TXN_ID_KEY = "Global Transaction Id";
-
+	
+	public static final String RETRY_COUNTER = "GNF Retry Message Counter";
+	public static final String RETRY_FLAG = "GNF Retry Message flag";
+	public static final String SOURCE_AUTH_LEVEL = "Source Authorization Level";
+	public static final String TARGET_GROUP_ID= "Target Group Id";
 }
