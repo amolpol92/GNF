@@ -57,7 +57,7 @@ public class SendGridEmailClient {
 		response = sg.api(request);
 
 		if (response.getStatusCode() == 202)
-			ack = "ReceivedBySendgrid";
+			ack = response.getHeaders().get("X-Message-Id");
 
 		return ack;
 	}

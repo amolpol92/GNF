@@ -14,8 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import app.dao.EmailNotifeirStatusLogDAO;
+import app.dao.MessageStatusListenerDao;
 import app.model.DeliveryStatus;
+import app.model.MessageStatusListenerSO;
+import app.service.ProviderMsgPublisher;
+import app.service.RetryMsgPublisher;
 
 /**
  * @author Amol this servlet responsible for listening messages pushed on
@@ -40,52 +43,100 @@ public class SendGridWebhook extends HttpServlet {
 
 		System.out.println(enums);
 
-		enums.forEach((statusData) -> persistInDb(statusData));
+		enums.forEach((statusData) -> checkStatusAndPersistInDb(statusData));
 
 	}
 
-	public void persistInDb(DeliveryStatus message) {
+	public void checkStatusAndPersistInDb(DeliveryStatus message) {
+		MessageStatusListenerDao dao;
+		String globalTxnId = null;
+		String sendgridMessageId = null;
 		try {
-			EmailNotifeirStatusLogDAO dao;
+			/*
+			 * EmailNotifeirStatusLogDAO dao; dao = new
+			 * EmailNotifeirStatusLogDAO(); dao.insertWebhookDetails(message);
+			 */
+			sendgridMessageId = message.getSg_message_id().split(".")[0];
+			dao = new MessageStatusListenerDao();
+			globalTxnId = dao.getGlobalTranId(sendgridMessageId);
+
+			MessageStatusListenerSO listenerSO = prepareStatusListenerMessage(message, sendgridMessageId,
+					globalTxnId);
+
+			dao.statusListener(listenerSO);
+
+		} catch (SQLException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		retryHandler(message, globalTxnId);
+		successHandler(message, globalTxnId);
+	}
+
+	/**
+	 * @param message
+	 * @param globalTxnId
+	 */
+	private void successHandler(DeliveryStatus message, String globalTxnId) {
+		MessageStatusListenerDao dao;
+		if (message.getEvent().equalsIgnoreCase("delivered")) {
+
 			try {
-				dao = new EmailNotifeirStatusLogDAO();
-				dao.insertWebhookDetails(message);
-			} catch (ClassNotFoundException e) {
+				dao = new MessageStatusListenerDao();
+				dao.deleteFromMessageStore(globalTxnId);
+			} catch (SQLException | ClassNotFoundException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
+			// TODO Remove delivered message from message store
 		}
 	}
 
-	/*
-	 * public static void main(String[] args) { Gson g = new Gson();
-	 * 
-	 * StatusList listStatus = g.fromJson("[{\r\n" +
-	 * "    \"email\": \"example@test.com\",\r\n" +
-	 * "    \"timestamp\": 1536648769,\r\n" +
-	 * "    \"smtp-id\": \"<14c5d75ce93.dfd.64b469@ismtpd-555>\",\r\n" +
-	 * "    \"event\": \"delivered\",\r\n" +
-	 * "    \"category\": \"cat facts\",\r\n" +
-	 * "    \"sg_event_id\": \"nZYZNTeicmbLmpCR2sM4jQ==\",\r\n" +
-	 * "    \"sg_message_id\": \"14c5d75ce93.dfd.64b469.filter0001.16648.5515E0B88.0\",\r\n"
-	 * + "    \"response\": \"250 OK\"\r\n" + "  }]", StatusList.class);
-	 * 
-	 * Type collectionType = new
-	 * TypeToken<Collection<DeliveryStatus>>(){}.getType();
-	 * Collection<DeliveryStatus> enums = g.fromJson("[{\r\n" +
-	 * "    \"email\": \"example@test.com\",\r\n" +
-	 * "    \"timestamp\": 1536648769,\r\n" +
-	 * "    \"smtp-id\": \"<14c5d75ce93.dfd.64b469@ismtpd-555>\",\r\n" +
-	 * "    \"event\": \"delivered\",\r\n" +
-	 * "    \"category\": \"cat facts\",\r\n" +
-	 * "    \"sg_event_id\": \"nZYZNTeicmbLmpCR2sM4jQ==\",\r\n" +
-	 * "    \"sg_message_id\": \"14c5d75ce93.dfd.64b469.filter0001.16648.5515E0B88.0\",\r\n"
-	 * + "    \"response\": \"250 OK\"\r\n" + "  }]", collectionType);
-	 * 
-	 * System.out.println(g.toJson(enums)); }
+	/**
+	 * @param message
+	 * @param globl_tran_id
 	 */
+	private void retryHandler(DeliveryStatus message, String globl_tran_id) {
+		MessageStatusListenerDao dao;
+		if (message.getEvent().equalsIgnoreCase("bounce") || message.getEvent().equalsIgnoreCase("dropped")) {
+
+			try {
+				dao = new MessageStatusListenerDao();
+				dao.updateRetryCounter(globl_tran_id);
+				MessageStatusListenerSO messageCacheDetails=dao.getMessageDetailsFromStore(globl_tran_id);
+
+				RetryMsgPublisher publisher = new RetryMsgPublisher();
+				publisher.publishMessageOnFailure(messageCacheDetails);
+				// publisher.publishMessage(publishMessage);
+			} catch (SQLException | ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * @param message
+	 * @param sendgridMessageId
+	 * @param globl_tran_id
+	 * @return
+	 */
+	private MessageStatusListenerSO prepareStatusListenerMessage(DeliveryStatus message, String sendgridMessageId,
+			String globl_tran_id) {
+		MessageStatusListenerSO listenerSO = new MessageStatusListenerSO();
+
+		listenerSO.setGlobal_txn_id(globl_tran_id);
+		listenerSO.setProvider_msg_id(sendgridMessageId);
+		listenerSO.setProvider_id("SendGrid");
+		listenerSO.setStatus(message.getEvent());
+		listenerSO.setTimestamp(message.getTimestamp().toString());
+		listenerSO.setReceiver_id(message.getEmail());
+		listenerSO.setSource_id(null);
+		listenerSO.setAttempt(message.getAttempt());
+		listenerSO.setComments(null);
+		return listenerSO;
+	}
+
 	private String getInputData(HttpServletRequest req) throws IOException {
 		BufferedReader d = req.getReader();
 		StringBuilder inputData = new StringBuilder();

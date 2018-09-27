@@ -40,8 +40,8 @@ public class TwilioSmsClient {
 				new PhoneNumber(senderNumber), // from
 				formattedMessage).create();
 
-		if (twilioMessage != null && null != twilioMessage.getSid())
-			ack = "ReceivedByTwilio";
+		if (twilioMessage != null && null != twilioMessage.getSid() && twilioMessage.getErrorCode()==null)
+			ack = twilioMessage.getSid();
 
 		return ack;
 

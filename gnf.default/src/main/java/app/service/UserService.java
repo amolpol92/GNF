@@ -23,7 +23,6 @@ import app.util.ExternalProperties;
  */
 public class UserService {
 
-
 	/**
 	 * this method being called after pulling messages from notify subscription
 	 * of pubsub layer receives pulled messages from notify pull pubsub layer
@@ -37,16 +36,42 @@ public class UserService {
 	public void sendMessagesToUser(List<SubscriberMessage> messageList) throws ServletException, IOException {
 
 		String userSvcURL = ExternalProperties.getAppConfig("user.service.url");
-		for (SubscriberMessage subMessage : messageList) {
-			HttpClientRequestHandler httpClient = new HttpClientRequestHandler();
-			MessageStatus requestObject = new MessageStatus();
-			requestObject.setGlobalTxnId(subMessage.getGlobalTransactionId());
-			requestObject.setMessageId(subMessage.getGlobalTransactionId());
-			requestObject.setMessageData(subMessage.getMessage());
-			if (null != subMessage.getDestGroupId() && subMessage.getDestGroupId() != "")
-				requestObject.setDestGroupId(subMessage.getDestGroupId());
+
+		messageList.forEach(message -> passMessagetoUserService(userSvcURL, message));
+
+	}
+
+	/**
+	 * @param userSvcURL
+	 * @param message
+	 */
+	private void passMessagetoUserService(String userSvcURL, SubscriberMessage message) {
+		HttpClientRequestHandler httpClient = new HttpClientRequestHandler();
+		MessageStatus requestObject = getMessageStatus(message);
+		try {
 			httpClient.sendPostReturnStatus(requestObject, userSvcURL);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * @param subMessage
+	 * @return
+	 */
+	private MessageStatus getMessageStatus(SubscriberMessage subMessage) {
+		MessageStatus requestObject = new MessageStatus();
+		requestObject.setGlobalTxnId(subMessage.getGlobalTransactionId());
+		requestObject.setMessageId(subMessage.getGlobalTransactionId());
+		requestObject.setMessageData(subMessage.getMessage());
+		
+		if (null != subMessage.getDestGroupId() && !subMessage.getDestGroupId().isEmpty())
+			requestObject.setDestGroupId(subMessage.getDestGroupId());
+
+		requestObject.setRetryMessageFlag(Boolean.valueOf(subMessage.getRetryMessageFlag()));
+		requestObject.setRetryCounter(
+				null != subMessage.getRetryCounter() ? Integer.valueOf(subMessage.getRetryCounter()) : 0);
+		return requestObject;
 	}
 
 	/**
@@ -67,7 +92,6 @@ public class UserService {
 		else
 			allUsers = userDetailsDao.getAllUserDetails();
 
-		
 		BindUserMessageDetails utility = new BindUserMessageDetails();
 		if (null != allUsers && allUsers.size() > 0)
 			utility.prepareMessagesWithPreferences(allUsers, req);

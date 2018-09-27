@@ -58,11 +58,10 @@ public class NotifyService {
 	 * @param pubsubMessage
 	 * @return list of message ids
 	 */
-	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage,
-			Map<String, String> labels) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
 
 		NotifyServiceMessagePublisher publisher = new NotifyServiceMessagePublisher();
-		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage, labels);
+		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage);
 		return messageIds;
 	}
 
@@ -126,11 +125,8 @@ public class NotifyService {
 
 		List<String> topics = ListUtils.getListFromCSV(topicNames);
 
-		Map<String, String> labels = new HashMap<>();
-		labels.put(Constants.GB_TXN_ID_KEY, globalTxnId);
-		labels.put("Source Authorization Level", String.valueOf(sourceMessage.getSourceAuthLevel()));
-		labels.put("Target Group Id", String.valueOf(sourceMessage.getGroupId()));
-		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage, labels);
+		
+		List<PublisherMessage> messageIds = publisher.publishMessage(topics, pubsubMessage);
 
 		return messageIds;
 	}
@@ -167,7 +163,11 @@ public class NotifyService {
 
 			PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data)
 					.putAttributes(Constants.GB_TXN_ID_KEY, sourceMessage.getGlobalTxnId())
-					.putAttributes("srcAuthLevel", srcAuthLvlStr).putAttributes("destGroupId", groupIdStr).build();
+					.putAttributes(Constants.SOURCE_AUTH_LEVEL, srcAuthLvlStr)
+					.putAttributes(Constants.TARGET_GROUP_ID, groupIdStr)
+					.putAttributes(Constants.RETRY_FLAG, "false")
+					.putAttributes(Constants.RETRY_COUNTER, "0")
+					.build();
 			return pubsubMessage;
 		}
 	}

@@ -8,6 +8,7 @@ import java.util.List;
 import com.google.api.services.pubsub.model.PubsubMessage;
 
 import app.model.MessageStatus;
+import app.model.MessageStatusListenerSO;
 import app.servlet.HttpClientRequestHandler;
 import app.util.ExternalProperties;
 
@@ -29,10 +30,10 @@ public class TwilioSmsNotifier {
 
 		ack = sms.sendSms(message.getAttributes().get("mobileNumber"), decodedMessage);
 
-		if (null != ack && ack != "" && ack.equalsIgnoreCase("ReceivedByTwilio")) {
-			MessageStatus req = statusUpdateRequest(message);
+		if (null != ack && ack != "" && !ack.equalsIgnoreCase("failed")) {
+			MessageStatusListenerSO listenerSO= statusUpdateRequest(message,ack);
 			// TODO need access twilio api for actual delivery status
-			updateDelConfirmation(req);
+			updateDelConfirmation(listenerSO);
 		} else if (ack.equalsIgnoreCase("failed")) {
 			retryCount--;
 			if (retryCount > 0)
@@ -49,13 +50,21 @@ public class TwilioSmsNotifier {
 	 * @param message
 	 * @return
 	 */
-	private MessageStatus statusUpdateRequest(PubsubMessage message) {
-		MessageStatus req;
-		req = new MessageStatus();
-		req.setDeliveryFlag("true");
-		req.setMessageData(message.getData());
-		req.setMessageId(message.getAttributes().get("globalTransactionId"));
-		return req;
+	private MessageStatusListenerSO statusUpdateRequest(PubsubMessage message , String ack) {
+		MessageStatusListenerSO listenerSO = new MessageStatusListenerSO();
+		
+		listenerSO.setGlobal_txn_id(message.getAttributes().get("globalTransactionId"));
+		listenerSO.setProvider_msg_id(ack);
+		listenerSO.setProvider_id("Twilio");
+		listenerSO.setStatus("ReceivedByTwilio");
+		listenerSO.setTimestamp(message.getPublishTime());
+		listenerSO.setReceiver_id(message.getAttributes().get("mobileNumber"));
+		listenerSO.setSource_id(null);
+		String attempt=(null!=message.getAttributes().get("attempt")? Long.valueOf(message.getAttributes().get("attempt")):0)+1+"";
+		listenerSO.setAttempt(attempt);
+		listenerSO.setComments(null);
+		listenerSO.setTarget_id(null);
+		return listenerSO;
 	}
 
 	/**
@@ -63,12 +72,12 @@ public class TwilioSmsNotifier {
 	 * @param delivered
 	 * @throws IOException
 	 */
-	private void updateDelConfirmation(MessageStatus req) throws IOException {
+	private void updateDelConfirmation(MessageStatusListenerSO listenerSO) throws IOException {
 
 		HttpClientRequestHandler client = new HttpClientRequestHandler();
 
 		String updateStatusSvcURL = ExternalProperties.getAppConfig("updatestatus.service.url");
-		client.sendPostReturnStatus(req, updateStatusSvcURL);
+		client.sendPostReturnStatus(listenerSO, updateStatusSvcURL);
 
 	}
 

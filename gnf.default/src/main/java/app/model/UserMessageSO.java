@@ -14,9 +14,37 @@ public class UserMessageSO {
 	private String globalTransactionId;
 	private String messageId;
 	private String publishTime;
+	private int retryCounter;
+	private boolean retryMessageFlag;
+	private String sourceId;
+	private String targetId;
 	
 	
 	
+	public String getTargetId() {
+		return targetId;
+	}
+	public void setTargetId(String targetId) {
+		this.targetId = targetId;
+	}
+	public String getSourceId() {
+		return sourceId;
+	}
+	public void setSourceId(String sourceId) {
+		this.sourceId = sourceId;
+	}
+	public int getRetryCounter() {
+		return retryCounter;
+	}
+	public void setRetryCounter(int retryCounter) {
+		this.retryCounter = retryCounter;
+	}
+	public boolean isRetryMessageFlag() {
+		return retryMessageFlag;
+	}
+	public void setRetryMessageFlag(boolean retryMessageFlag) {
+		this.retryMessageFlag = retryMessageFlag;
+	}
 	public String getPublishTime() {
 		return publishTime;
 	}

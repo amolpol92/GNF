@@ -29,19 +29,18 @@ public class NotifyServiceMessagePublisher {
 	 * @param pubsubMessage
 	 * @return messageIdList
 	 */
-	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage,
-			Map<String, String> labels) {
+	public List<PublisherMessage> publishMessage(List<String> topics, PubsubMessage pubsubMessage) {
 
 		List<PublisherMessage> messageIds = new ArrayList<>();
 
 		topics.forEach(topic -> {
 
 			String messageId = "";
-			String globalTxnId = pubsubMessage.getAttributesOrThrow(Constants.GB_TXN_ID_KEY);
+			String globalTxnId = pubsubMessage.getAttributesOrDefault(Constants.GB_TXN_ID_KEY, "NA");
 			try {
 
 				GenericMessagePublisher publisher = new GenericMessagePublisher();
-
+				Map<String,String> labels = pubsubMessage.getAttributesMap();
 				String logMessage = "Requested to Publish message on topic: " + topic;
 				if (topic.equalsIgnoreCase("logMsg")) {
 					messageId = logPublishRequest(logMessage, labels);

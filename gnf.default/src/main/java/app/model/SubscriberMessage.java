@@ -1,6 +1,5 @@
 package app.model;
 
-
 /**
  * @author AdarshSinghal
  *
@@ -16,6 +15,8 @@ public class SubscriberMessage {
 	private String globalTransactionId;
 	private String ackId;
 	private String destGroupId;
+	private String retryCounter;
+	private String retryMessageFlag;
 
 	public SubscriberMessage(String messageId, String message, String publishTime, String ackId, String globalTxnId) {
 		super();
@@ -26,16 +27,29 @@ public class SubscriberMessage {
 		this.globalTransactionId = globalTxnId;
 	}
 
-	
+	public String getRetryCounter() {
+		return retryCounter;
+	}
+
+	public void setRetryCounter(String retryCounter) {
+		this.retryCounter = retryCounter;
+	}
+
+	public String getRetryMessageFlag() {
+		return retryMessageFlag;
+	}
+
+	public void setRetryMessageFlag(String retryMessageFlag) {
+		this.retryMessageFlag = retryMessageFlag;
+	}
+
 	public String getDestGroupId() {
 		return destGroupId;
 	}
 
-
 	public void setDestGroupId(String destGroupId) {
 		this.destGroupId = destGroupId;
 	}
-
 
 	public String getId() {
 		return id;
@@ -77,7 +91,6 @@ public class SubscriberMessage {
 		this.ackId = ackId;
 	}
 
-
 	public String getSubscriptionId() {
 		return subscriptionId;
 	}
@@ -108,6 +121,5 @@ public class SubscriberMessage {
 				+ subscriptionId + ", publishTime=" + publishTime + ", pullTime=" + pullTime + ", globalTransactionId="
 				+ globalTransactionId + ", ackId=" + ackId + "]";
 	}
-
 
 }
