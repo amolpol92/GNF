@@ -5,7 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import app.model.MessageStatusListenerSO;
 
@@ -69,20 +71,30 @@ public class MessageStatusListenerDao {
 			ResultSet rs = ps.executeQuery();
 
 			if (rs.next()) {
-				messageCacheDetails = new MessageStatusListenerSO();
-				messageCacheDetails.setGlobal_txn_id(rs.getString("global_txn_id"));
-				messageCacheDetails.setMessage_data(rs.getString("message_data"));
-				messageCacheDetails.setTimestamp(rs.getTimestamp("store_timestamp") + "");
-				messageCacheDetails.setReceiver_id(rs.getString("source_id"));
-				messageCacheDetails.setProvider_id(rs.getString("provider_id"));
-				messageCacheDetails.setTarget_id(rs.getString("target_id"));
-				messageCacheDetails.setRetry_counter(rs.getString("retry_counter"));
-				// UserMessageSO userMessage
-				// global_txn_id = rs.getString("group_auth_level");
+				messageCacheDetails = getMessageCacheDetails(rs);
+				
 			} else {
 				throw new SQLException("No details found for global_txn_id ");
 			}
 		}
+		return messageCacheDetails;
+	}
+
+	/**
+	 * @param rs
+	 * @return
+	 * @throws SQLException
+	 */
+	private MessageStatusListenerSO getMessageCacheDetails(ResultSet rs) throws SQLException {
+		MessageStatusListenerSO messageCacheDetails;
+		messageCacheDetails = new MessageStatusListenerSO();
+		messageCacheDetails.setGlobal_txn_id(rs.getString("global_txn_id"));
+		messageCacheDetails.setMessage_data(rs.getString("message_data"));
+		messageCacheDetails.setTimestamp(rs.getTimestamp("store_timestamp") + "");
+		messageCacheDetails.setReceiver_id(rs.getString("source_id"));
+		messageCacheDetails.setProvider_id(rs.getString("provider_id"));
+		messageCacheDetails.setTarget_id(rs.getString("target_id"));
+		messageCacheDetails.setRetry_counter(rs.getString("retry_counter"));
 		return messageCacheDetails;
 	}
 
@@ -102,14 +114,7 @@ public class MessageStatusListenerDao {
 				+ "(global_txn_id,message_data,store_timestamp,source_id,provider_id,target_id,retry_counter)"
 				+ "VALUES (?,?,?,?,?,?,?)";
 		Timestamp currentTimestamp = new Timestamp(new Date().getTime());
-		/*
-		 * try { Timestamp timestamp =
-		 * DateUtility.getTimestamp(messageDetails.getTimestamp()); ts = timestamp !=
-		 * null ? timestamp : currentTimestamp; } catch (ParseException e) {
-		 * 
-		 * e.printStackTrace(); }
-		 */
-
+		
 		try (PreparedStatement ps = connection.prepareStatement(sql)) {
 
 			ps.setString(1, messageDetails.getGlobal_txn_id());
@@ -132,4 +137,25 @@ public class MessageStatusListenerDao {
 			ps.executeUpdate();
 		}
 	}
+	
+	public List<MessageStatusListenerSO> getMessageDetailsFromStore() throws SQLException {
+		List<MessageStatusListenerSO> messageList=new ArrayList<>();
+		String sql = "select * from message_cache";
+
+		MessageStatusListenerSO messageCacheDetails = null;
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+
+			
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				messageCacheDetails = getMessageCacheDetails(rs);
+				messageList.add(messageCacheDetails);
+			} else {
+				throw new SQLException("No details found for global_txn_id ");
+			}
+		}
+		return messageList;
+	}
+	
 }

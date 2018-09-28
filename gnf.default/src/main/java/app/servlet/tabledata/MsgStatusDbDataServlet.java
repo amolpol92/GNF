@@ -19,35 +19,35 @@ import app.model.MessageStatusCacheField;
  * @author AdarshSinghal
  *
  */
-@WebServlet("/api/getMsgStatusCacheData")
-public class MsgStatusCacheDataServlet extends TableDataParentServlet<MessageStatusCacheField> {
+@WebServlet("/api/getMsgStatusDbdata")
+public class MsgStatusDbDataServlet extends TableDataParentServlet<MessageStatusCacheField> {
 
 	private static final long serialVersionUID = 6587925302210756509L;
-	private static final Logger LOGGER = Logger.getLogger(MsgStatusCacheDataServlet.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(MsgStatusDbDataServlet.class.getName());
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		List<MessageStatusCacheField> logDetails = getMessageStatusDetailsList();
+		List<MessageStatusCacheField> messageStatusDetails = getMessageStatusDetailsList();
 
-		if (logDetails == null || logDetails.isEmpty()) {
+		if (messageStatusDetails == null || messageStatusDetails.isEmpty()) {
 			prepareNoContentResponse(response);
 			return;
 		}
 
-		prepareJsonResponse(response, logDetails);
+		prepareJsonResponse(response, messageStatusDetails);
 	}
 
 	private List<MessageStatusCacheField> getMessageStatusDetailsList() {
-		List<MessageStatusCacheField> logDetails = null;
+		List<MessageStatusCacheField> messageStatusDetails = null;
 		MessageStatusDAO dao;
 		try {
 			dao = new MessageStatusDAO();
-			logDetails = dao.getAllFieldDetails();
+			messageStatusDetails = dao.getAllFieldDetails();
 		} catch (SQLException e) {
 			LOGGER.severe(e.getMessage());
 		}
-		return logDetails;
+		return messageStatusDetails;
 	}
 
 }
